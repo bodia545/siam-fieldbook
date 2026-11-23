@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0D2238">
+<title>Field Book · Siam HVAC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/*
+ VOICE   a calm foreman beside a beginner: one step at a time, plain words
+ IDEA    service tag + illustrated work card: a drawing of the real parts with numbered yellow pins
+ PICTURE each step opens on a 3D-tilted drawing whose pins pulse and whose arrows march to the exact part
+ COLOUR  navy header, paper ground, teal = go, amber = call/pin, red = stop
+ TYPE    Barlow Condensed stamped titles, Barlow for reading
+*/
+:root{--navy:#0D2238;--navy2:#16324F;--teal:#10A39A;--teal2:#7FE0D6;--steel:#DCE3E8;--steel2:#C3CDD6;--paper:#F4F7F9;--ink:#12202E;--muted:#5B6B7A;--amber:#F2A900;--red:#C8312B;--green:#1E8A4C;--blue:#2B63D9;--violet:#6D44C9;
+ --cond:"Barlow Condensed","Arial Narrow",sans-serif;--body:Barlow,system-ui,sans-serif;--ease:cubic-bezier(.2,.8,.2,1)}
+*{box-sizing:border-box;min-width:0}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.5 var(--body);overflow-x:clip}
+a{color:var(--teal);font-weight:600}
+button,input,textarea,select{font:inherit}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+h1,h2,h3{font-family:var(--cond);font-weight:700;line-height:1.05;margin:0;color:var(--navy)}
+.app{max-width:560px;margin:0 auto;min-height:100vh;background:var(--paper);position:relative;padding-bottom:calc(84px + env(safe-area-inset-bottom));perspective:1400px}
+@media(min-width:700px){body{background:#E6ECF0}.app{box-shadow:0 0 0 1px var(--steel2),0 30px 80px #0d22381f}}
+/* header */
+.hd{background:var(--navy);color:#fff;padding:calc(18px + env(safe-area-inset-top)) 20px 18px;position:relative;overflow:hidden}
+.hd.red{background:var(--red)}
+.hd::after{content:"";position:absolute;right:-60px;top:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,#10A39A40,transparent 70%);animation:glow 6s ease-in-out infinite}
+.hd.red::after{background:radial-gradient(circle,#ffffff30,transparent 70%)}
+@keyframes glow{50%{transform:translate(-30px,20px) scale(1.2)}}
+.eyebrow{font:700 13px var(--cond);letter-spacing:.06em;color:var(--teal2);text-transform:uppercase}
+.hd.red .eyebrow{color:#ffd9d6}
+.hd h1{color:#fff;font-size:clamp(28px,7vw,36px);margin-top:4px;text-wrap:balance}
+.hd .back{color:#b9c8d6;text-decoration:none;font-weight:600;font-size:15px;display:inline-block;margin-bottom:8px}
+.hd .help{position:absolute;right:16px;top:calc(16px + env(safe-area-inset-top));width:40px;height:40px;border-radius:50%;background:#ffffff1a;color:#fff;display:grid;place-items:center;text-decoration:none;font:700 20px var(--cond);z-index:2}
+.bar{height:8px;background:#ffffff26;border-radius:9px;margin-top:12px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--teal);border-radius:9px;transition:width .8s var(--ease)}
+.barlbl{font-size:14px;color:#cfdbe6;margin-top:6px}
+main{padding:16px}
+/* view transitions (3D) */
+.view{animation:inF .5s var(--ease) both;transform-origin:50% 0}
+.view.back{animation-name:inB}
+@keyframes inF{from{opacity:0;transform:translateX(40px) rotateY(-8deg)}}
+@keyframes inB{from{opacity:0;transform:translateX(-40px) rotateY(8deg)}}
+.view.still .st>*{animation:none}.st>*{animation:up .55s var(--ease) both;animation-delay:calc(var(--i,0)*70ms + 120ms)}
+@keyframes up{from{opacity:0;transform:translateY(18px)}}
+/* cards */
+.card{background:#fff;border-radius:16px;padding:18px;margin-top:14px;box-shadow:0 1px 0 var(--steel2),0 8px 24px #0d22380d}
+.card h2{font-size:24px;margin-bottom:8px}
+.plain{background:#E3F5F3;box-shadow:none}
+.tag{position:relative;background:#fff;border-radius:8px 20px 20px 8px;padding:20px 20px 20px 26px;border-left:10px solid var(--teal);box-shadow:0 2px 0 var(--steel2),0 14px 30px #0d22381a;display:block;color:inherit;text-decoration:none;transform-style:preserve-3d;transition:transform .25s var(--ease)}
+.tag .when{font:700 14px var(--cond);color:var(--teal);letter-spacing:.05em;text-transform:uppercase}
+.tag h3{font-size:30px;margin:6px 0 6px}
+.tag .where{color:var(--muted);font-size:15px}
+.tag.done{border-left-color:var(--green)}
+.tag.small h3{font-size:22px}
+.muted{color:var(--muted)}
+/* buttons */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:54px;padding:0 18px;border-radius:12px;border:0;background:var(--teal);color:#fff;font:700 18px var(--body);text-decoration:none;cursor:pointer;margin-top:12px;box-shadow:0 4px 0 #0b7a73;transition:transform .12s,box-shadow .12s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #0b7a73}
+.btn.amber{background:var(--amber);color:var(--navy);box-shadow:0 4px 0 #b37e00}
+.btn.red{background:var(--red);box-shadow:0 4px 0 #8e211c}
+.btn.ghost{background:var(--steel);color:var(--navy);box-shadow:0 4px 0 var(--steel2)}
+.btn.glow{animation:btnglow 1.4s ease-in-out infinite}
+@keyframes btnglow{50%{box-shadow:0 4px 0 #0b7a73,0 0 0 8px #10A39A33}}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.row2 .btn{margin-top:10px;font-size:16px}
+/* checklist */
+.chk{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-top:1px solid #E6ECF0;cursor:pointer}
+.chk:first-of-type{border-top:0}
+.chk input{appearance:none;flex:0 0 28px;width:28px;height:28px;border:3px solid var(--teal);border-radius:8px;margin:0;display:grid;place-items:center;cursor:pointer;transition:background .2s}
+.chk input:checked{background:var(--teal);animation:pop .3s}
+.chk input:checked::after{content:"";width:8px;height:14px;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-2px)}
+@keyframes pop{50%{transform:scale(1.25)}}
+.chk.on .txt{color:var(--muted);text-decoration:line-through;text-decoration-color:#0003}
+/* tags */
+.chip{display:inline-block;font:700 12px var(--cond);letter-spacing:.06em;color:#fff;padding:3px 8px;border-radius:5px;margin-bottom:4px}
+.c-COPY{background:var(--blue)}.c-EXTRACT{background:var(--violet)}.c-MOVE{background:var(--teal)}.c-SEE{background:var(--amber);color:var(--navy)}.c-CHECK{background:var(--navy)}.c-CAREFUL{background:var(--red)}
+/* pins */
+.pin{flex:0 0 36px;width:36px;height:36px;border-radius:50%;background:var(--amber);border:3px solid var(--navy);display:grid;place-items:center;font:700 19px var(--cond);color:var(--navy)}
+.task.on .pin{background:var(--green);color:#fff;border-color:var(--green)}
+.task{display:flex;gap:12px;padding:14px 0;border-top:1px solid #E6ECF0;align-items:flex-start}
+.task:first-of-type{border-top:0}
+.task .body{flex:1}
+.task .tick{appearance:none;flex:0 0 30px;width:30px;height:30px;border:3px solid var(--steel2);border-radius:50%;margin:3px 0 0;display:grid;place-items:center;cursor:pointer}
+.task .tick:checked{background:var(--green);border-color:var(--green);animation:pop .3s}
+.task .tick:checked::after{content:"";width:7px;height:13px;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-2px)}
+/* illustration (3D) */
+.ill{margin:16px 0 0;perspective:900px}
+.ill .stage{background:linear-gradient(180deg,#EAF0F4,#DCE5EC);border-radius:18px;transform:rotateX(9deg);transform-style:preserve-3d;box-shadow:0 22px 30px -18px #0d223866,inset 0 1px 0 #fff;transition:transform .3s var(--ease);animation:float 7s ease-in-out infinite;overflow:hidden}
+@keyframes float{50%{transform:rotateX(5deg) translateY(-4px)}}
+.ill svg{display:block;width:100%;height:auto}
+.ill .cap{font-size:13px;color:var(--muted);text-align:center;margin-top:8px}
+.ppulse{transform-box:fill-box;transform-origin:center;animation:ping 1.8s ease-out infinite}
+@keyframes ping{from{opacity:.7;transform:scale(1)}to{opacity:0;transform:scale(2.2)}}
+.arrow{stroke-dasharray:6 6;animation:march .9s linear infinite}
+@keyframes march{to{stroke-dashoffset:-12}}
+.flowline{stroke-dasharray:8 8;animation:march .8s linear infinite}
+.fan{transform-box:fill-box;transform-origin:center;animation:spin 3s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pinG.hit circle.pb{fill:#1E8A4C}.pinG.hit text{fill:#fff}
+.pinG.focus circle.pb{animation:bounce .6s var(--ease)}
+@keyframes bounce{40%{transform:scale(1.35)}}
+.pinG circle.pb{transform-box:fill-box;transform-origin:center}
+/* result boxes */
+.ok,.no{border-radius:14px;padding:14px 16px;margin-top:14px;border:2px solid}
+.ok{background:#E2F3E8;border-color:#9fd3b2}.ok b{color:var(--green)}
+.no{background:#FBE5E3;border-color:#efb1ab}.no b{color:var(--red)}
+.ok p,.no p{margin:4px 0 0;font-size:15px}
+.note{border-radius:12px;padding:12px 14px;margin-top:14px;font-size:15px;border-left:6px solid var(--teal);background:#E3F5F3}
+.note.stop{border-color:var(--red);background:#FBE5E3}.note.warn{border-color:var(--amber);background:#FFF4D6}.note.go{border-color:var(--green);background:#E2F3E8}
+/* widgets */
+.widget{background:#fff;border-radius:16px;padding:16px;margin-top:14px;box-shadow:0 1px 0 var(--steel2)}
+.widget h3{font-size:20px;margin-bottom:8px}
+.needle{transform-origin:150px 120px;transition:transform 1.4s cubic-bezier(.3,1.4,.5,1)}
+.big{font:700 52px/1 var(--cond);color:var(--navy);text-align:center;font-variant-numeric:tabular-nums}
+.meaning{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.meaning button{border-radius:14px;padding:14px;text-align:left;cursor:pointer;border:2px solid;background:#fff;min-height:120px}
+.meaning .lo{border-color:var(--red)}.meaning .hi{border-color:var(--green)}
+.meaning b{display:block;font:700 24px var(--cond)}
+.meaning .lo b{color:var(--red)}.meaning .hi b{color:var(--green)}
+.meaning span{font-size:14px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:16px}th{background:var(--navy);color:#fff;font:600 15px var(--cond);letter-spacing:.05em;padding:8px}td{padding:9px 8px;text-align:right;border-bottom:1px solid #E6ECF0;font-variant-numeric:tabular-nums;white-space:nowrap}td:first-child{text-align:left}
+/* step list on job page */
+.steprow{display:flex;gap:14px;align-items:center;padding:12px 0;border-top:1px solid #E6ECF0;color:inherit;text-decoration:none}
+.steprow:first-of-type{border-top:0}
+.steprow .n{flex:0 0 40px;height:40px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font:700 20px var(--cond)}
+.steprow.done .n{background:var(--green)}
+.steprow .t{flex:1;font-weight:600}.steprow .t small{display:block;color:var(--muted);font-weight:400;font-size:14px}
+.steprow .go{color:var(--teal);font-size:22px}
+/* nameplate */
+.plate{position:relative;background:linear-gradient(160deg,#EEF2F5,var(--steel) 55%,#CBD4DC);border-radius:12px;padding:22px;color:var(--ink);text-decoration:none;display:block;box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 #aab6c1,0 10px 24px #0d22381f;transform-style:preserve-3d;transition:transform .25s var(--ease)}
+.plate::before,.plate::after{content:"";position:absolute;top:10px;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#8e9ba7 70%)}
+.plate::before{left:10px}.plate::after{right:10px}
+.plate .brandline{font:700 13px var(--cond);letter-spacing:.12em;color:var(--muted)}
+.plate .model{font:700 32px/1 var(--cond);color:var(--navy);margin:4px 0 12px}
+.plate dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:15px}
+.plate dt{font:600 13px var(--cond);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;padding-top:2px}
+.plate dd{margin:0}
+.watch{background:#FFF4D6;border:2px solid #f3d27a}
+.watch li{margin:6px 0;font-size:15px}
+/* bottom nav */
+.nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(560px,100%);display:grid;grid-template-columns:repeat(5,1fr);background:#fff;border-top:1px solid var(--steel2);padding-bottom:env(safe-area-inset-bottom);z-index:30}
+.nav a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 0 9px;text-decoration:none;color:var(--muted);font:600 12px var(--body)}
+.nav a svg{width:24px;height:24px}
+.nav a.on{color:var(--teal)}
+.nav a.on svg{animation:pop .35s}
+/* inputs */
+label.f{display:block;font:600 15px var(--body);margin-top:12px}
+label.f input,label.f textarea,label.f select,.search{display:block;width:100%;margin-top:4px;border:2px solid var(--steel2);border-radius:12px;padding:12px 14px;font-size:16px;background:#fff}
+.search{margin:0 0 4px}
+details.more{margin-top:14px}details.more summary{cursor:pointer;font-weight:700;color:var(--navy);padding:6px 0}
+/* stop screen */
+.stopnum{display:flex;gap:12px;align-items:flex-start;padding:10px 0}
+.shake{animation:shake .5s}@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+/* login */
+.login{min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 30% 20%,#16324F,#0D2238 70%);padding:24px;perspective:1000px}
+.login .card{width:min(400px,100%);padding:28px;text-align:center;animation:flipin .8s var(--ease)}
+@keyframes flipin{from{opacity:0;transform:rotateX(-30deg) translateY(30px)}}
+.login .card.ok{animation:flipout .5s var(--ease) forwards}
+@keyframes flipout{to{opacity:0;transform:rotateY(80deg) scale(.9)}}
+.dots{display:flex;gap:16px;justify-content:center;margin:6px 0 18px}.dots span{width:18px;height:18px;border-radius:50%;border:3px solid var(--navy);transition:.2s}.dots span.on{background:var(--teal);border-color:var(--teal);transform:scale(1.15)}
+.pad{display:grid;grid-template-columns:repeat(3,74px);gap:14px;justify-content:center}.pad button{height:74px;border-radius:50%;border:0;background:var(--steel);color:var(--navy);font:700 30px var(--cond);cursor:pointer;box-shadow:0 4px 0 var(--steel2)}.pad button:active{background:var(--teal);color:#fff;transform:translateY(3px);box-shadow:none}
+/* dialog + toast */
+.dlg{position:fixed;inset:0;background:#0D2238b3;display:grid;place-items:end center;z-index:60;padding:16px;animation:fade .2s}
+.dlg .card{width:min(520px,100%);animation:up .35s var(--ease)}
+@keyframes fade{from{opacity:0}}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 18px;border-radius:12px;z-index:70;box-shadow:0 8px 24px #0006;animation:up .3s var(--ease)}
+.burst{position:fixed;pointer-events:none;z-index:80;width:10px;height:10px;border-radius:2px;animation:burst .9s var(--ease) forwards}
+@keyframes burst{to{transform:translate(var(--x),var(--y)) rotate(var(--r));opacity:0}}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.map{position:relative;border-radius:14px;overflow:hidden;margin-top:12px;height:220px;background:#DCE5EC;box-shadow:inset 0 0 0 1px var(--steel2)}
+.map iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.mappin{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-44px 0 0 -22px;pointer-events:none;animation:drop .8s var(--ease) both .3s}
+@keyframes drop{from{transform:translateY(-60px);opacity:0}70%{transform:translateY(4px)}}
+.mappin::after{content:"";position:absolute;left:12px;bottom:-6px;width:20px;height:8px;border-radius:50%;background:#0003;animation:ping 1.8s ease-out infinite}
+.photos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}
+.photos button{padding:0;border:0;border-radius:10px;overflow:hidden;aspect-ratio:1;background:#DCE5EC;cursor:pointer}
+.photos img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.photos button:hover img{transform:scale(1.06)}
+.visit{font:700 15px var(--cond);color:var(--navy);margin-top:14px;letter-spacing:.03em}
+.visit small{font:500 13px var(--body);color:var(--muted)}
+.lb{position:fixed;inset:0;background:#000e;z-index:90;display:flex;flex-direction:column;animation:fade .2s}
+.lb img{flex:1;min-height:0;width:100%;object-fit:contain;animation:zoomin .3s var(--ease)}
+@keyframes zoomin{from{transform:scale(.9);opacity:0}}
+.lb .lbbar{display:flex;justify-content:space-between;align-items:center;color:#fff;padding:calc(12px + env(safe-area-inset-top)) 16px 12px;font-size:15px}
+.lb .lbnav{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 16px calc(16px + env(safe-area-inset-bottom))}
+.lb .lbnav button,.lb .lbbar button{min-height:50px;border-radius:12px;border:0;background:#ffffff22;color:#fff;font:700 17px var(--body);padding:0 16px;cursor:pointer}
+.st3{display:grid;grid-template-columns:1fr 1fr;gap:10px}.st3 .btn{margin-top:10px;font-size:16px}
+.snapprev[hidden]{display:none}.snapprev{width:100%;border-radius:12px;margin-top:12px;display:block;max-height:340px;object-fit:contain;background:#0D2238}
+.view.still{animation:none}
+.ico{width:28px;height:28px}
+.nextcard{background:var(--navy);color:#fff;border-radius:20px;padding:20px;margin-top:14px;position:relative;overflow:hidden;box-shadow:0 14px 30px #0d223840}
+.nextcard::after{content:"";position:absolute;right:-50px;bottom:-60px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,#10A39A55,transparent 70%)}
+.nextcard .lbl{font:700 14px var(--cond);letter-spacing:.08em;color:var(--teal2)}
+.nextcard .what{font:700 30px/1.1 var(--cond);margin:6px 0 4px}
+.nextcard .why{color:#cfdbe6;font-size:15px}
+.nextcard .btn{font-size:20px;min-height:62px;margin-top:16px;position:relative;z-index:1}
+.road{background:#fff;border-radius:18px;padding:6px 16px;margin-top:14px;box-shadow:0 1px 0 var(--steel2)}
+.road a{display:flex;gap:14px;align-items:center;padding:13px 0;color:inherit;text-decoration:none;position:relative}
+.road a+a{border-top:1px solid #E6ECF0}
+.road .dot{flex:0 0 46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--steel);color:var(--navy);position:relative}
+.road .dot svg{width:24px;height:24px}
+.road a.done .dot{background:var(--green);color:#fff}
+.road a.now .dot{background:var(--amber);color:var(--navy)}
+.road a.now .dot::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:3px solid var(--amber);animation:ping 1.6s ease-out infinite}
+.road .t{flex:1;font-weight:700;font-size:18px}.road .t small{display:block;font-weight:500;color:var(--muted);font-size:14px}
+.road a.done .t{color:var(--muted)}
+.road .chev{color:var(--steel2);font-size:26px}
+.road a.now .chev{color:var(--amber)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.tile{background:#fff;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;text-decoration:none;color:var(--navy);box-shadow:0 1px 0 var(--steel2),0 8px 20px #0d22380d;min-height:126px;transition:transform .15s;border:0;text-align:left;font:inherit;cursor:pointer}
+.tile:active{transform:scale(.96)}
+.tile .ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:#fff}
+.tile .ic svg{width:26px;height:26px}
+.tile b{font:700 20px/1.1 var(--cond)}.tile small{color:var(--muted);font-size:14px;line-height:1.3}
+.focus{border:3px solid var(--amber);animation:slidein .45s var(--ease)}
+@keyframes slidein{from{opacity:0;transform:translateX(40px)}}
+.fhead{display:flex;gap:12px;align-items:center;font-weight:700;color:var(--muted)}
+.pin.big{flex:0 0 54px;width:54px;height:54px;font-size:30px}
+.ftext{font-size:21px;line-height:1.45;font-weight:600;margin:12px 0 0;color:var(--ink)}
+.fdots{display:flex;gap:6px;margin-top:14px}.fdots i{flex:1;height:8px;border-radius:9px;background:var(--steel)}.fdots i.on{background:var(--green)}.fdots i.cur{background:var(--amber)}
+.alldone{background:#E2F3E8;border:3px solid var(--green);border-radius:18px;padding:18px;margin-top:14px;text-align:center;animation:pop .5s}
+.alldone b{font:700 26px var(--cond);color:var(--green)}
+.pinG.dim{opacity:.35}.pinG.cur circle.pb{stroke-width:4}
+.linkbtn{display:block;text-align:center;margin:16px 0 4px;font-size:16px;background:none;border:0;color:var(--teal);font-weight:700;cursor:pointer;width:100%}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div id="toastbox"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+{
+const SB_URL='https://cmkhdltxyxxpbazvdcgj.supabase.co';
+const SB_KEY='sb_publishable_LL_aKN6KYWaOnUbRifn5RQ_-LLvddwK';
+let sbc=null;
+const api=window.__FB_MOCK||{rpc(n,a){if(!sbc)sbc=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false}});return sbc.rpc(n,a)}};
+const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const TOK=()=>{try{return localStorage.getItem('fb-token')||''}catch(e){return ''}};const setTOK=v=>{try{v?localStorage.setItem('fb-token',v):localStorage.removeItem('fb-token')}catch(e){}};
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today=()=>new Date().toLocaleDateString('en-CA',{timeZone:'America/Los_Angeles'});
+const fmtDate=d=>d?new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'}):'';
+const TAGN={COPY:'COPY',EXTRACT:'TAKE OUT',MOVE:'MOVE',SEE:'LOOK',CHECK:'CHECK',CAREFUL:'CAREFUL'};
+const TAGM={COPY:'Take a photo or write it down',EXTRACT:'Remove or disconnect something',MOVE:'Connect, turn or swap something',SEE:'Check what you see matches the app',CHECK:'Measure with a tool',CAREFUL:'Danger: go slow'};
+let DB={models:[],jobs:[],trouble:[],reports:[],uploads:[]},dir='fwd',lastH='';
+function toast(t){const el=document.createElement('div');el.className='toast';el.textContent=t;$('#toastbox').append(el);setTimeout(()=>el.remove(),2400)}
+function burst(x,y){const cs=['#10A39A','#F2A900','#1E8A4C','#7FE0D6'];for(let i=0;i<14;i++){const b=document.createElement('i');b.className='burst';const a=Math.random()*Math.PI*2,d=40+Math.random()*60;b.style.cssText=`left:${x}px;top:${y}px;background:${cs[i%4]};--x:${Math.cos(a)*d}px;--y:${Math.sin(a)*d}px;--r:${Math.random()*360}deg`;document.body.append(b);setTimeout(()=>b.remove(),1000)}}
+async function load(){const {data,error}=await api.rpc('fb_data',{tok:TOK()});if(error)throw error;DB={models:data.models||[],jobs:data.jobs||[],trouble:data.trouble||[],reports:data.reports||[],uploads:data.uploads||[]}}
+const model=id=>DB.models.find(m=>m.id===id);
+const job=id=>DB.jobs.find(j=>j.id===id);
+const checks=j=>store.get('fb-'+j.id,{});
+const stepDone=(j,si)=>{const c=checks(j),t=(j.steps[si].tasks||[]);return t.length>0&&t.every((_,ti)=>c[si+'-'+ti])};
+
+/* ---------- contacts (Dylan / Shawn) ---------- */
+function call(who){const c=store.get('fb-contacts',{});if(c[who]){location.href='tel:'+c[who].replace(/[^\d+]/g,'');return}
+ const n=who[0].toUpperCase()+who.slice(1);
+ const d=document.createElement('div');d.className='dlg';d.innerHTML=`<form class="card"><h2>${n}'s phone number</h2><p class="muted">Type it once. The app remembers it on this phone.</p><label class="f">Phone<input name="p" type="tel" inputmode="tel" required autofocus placeholder="253 555 0100"></label><button class="btn">Save and call</button><button type="button" class="btn ghost" data-x>Cancel</button></form>`;
+ document.body.append(d);d.querySelector('[data-x]').onclick=()=>d.remove();d.onclick=e=>{if(e.target===d)d.remove()};
+ d.querySelector('form').onsubmit=e=>{e.preventDefault();c[who]=e.target.p.value.trim();store.set('fb-contacts',c);d.remove();location.href='tel:'+c[who].replace(/[^\d+]/g,'')}}
+
+/* ---------- illustrations: anchors = [pinX,pinY,targetX,targetY] ---------- */
+const N='#0D2238',T='#10A39A',A='#F2A900',S='#C3CDD6',CU='#C9773A';
+const ILL={
+ power:{a:[[46,178,52,84],[128,30,104,112],[268,32,227,32],[300,186,262,118]],labels:'Disconnect box · Outdoor unit · Meter',svg:`
+  <rect x="0" y="0" width="92" height="200" fill="#C9D3DC"/>${[0,1,2,3,4,5,6,7].map(r=>`<line x1="0" y1="${r*25}" x2="92" y2="${r*25}" stroke="#B5C1CC"/>`).join('')}
+  <rect x="28" y="54" width="48" height="70" rx="5" fill="#8C99A6" stroke="${N}" stroke-width="2"/><rect x="58" y="66" width="10" height="34" rx="3" fill="#C8312B"/>
+  <line x1="52" y1="124" x2="52" y2="190" stroke="#6b7884" stroke-width="5"/>
+  <path d="M76 100 C100 100 100 118 130 118" fill="none" stroke="${N}" stroke-width="3"/>
+  <rect x="126" y="70" width="176" height="110" rx="10" fill="#F4F7F9" stroke="${N}" stroke-width="2.5"/>
+  <circle cx="186" cy="125" r="38" fill="#E6ECF0" stroke="${N}" stroke-width="2"/><g class="fan"><line x1="186" y1="90" x2="186" y2="160" stroke="${N}" stroke-width="3"/><line x1="151" y1="125" x2="221" y2="125" stroke="${N}" stroke-width="3"/></g>
+  <rect x="246" y="92" width="38" height="58" rx="4" fill="#DCE3E8" stroke="${N}" stroke-width="2"/>
+  <rect x="168" y="14" width="56" height="36" rx="6" fill="${A}" stroke="${N}" stroke-width="2"/><rect x="176" y="20" width="40" height="18" rx="3" fill="#fff"/><text x="196" y="34" text-anchor="middle" font-size="12" font-weight="700" fill="${N}">0 V</text>
+  <line x1="0" y1="190" x2="320" y2="190" stroke="#B5C1CC" stroke-width="2"/>`},
+ megger:{a:[[30,32,88,62],[210,186,176,150],[300,186,292,120]],labels:'Compressor · Clean copper · Megger',svg:`
+  <rect x="40" y="70" width="96" height="114" rx="40" fill="#46566A" stroke="${N}" stroke-width="2.5"/>
+  <rect x="68" y="56" width="40" height="18" rx="5" fill="#2c3a4a"/>${[76,88,100].map(x=>`<circle cx="${x}" cy="62" r="5" fill="${A}" stroke="${N}" stroke-width="1.5"/>`).join('')}
+  <rect x="120" y="144" width="110" height="12" rx="6" fill="${CU}"/><rect x="164" y="141" width="24" height="18" rx="3" fill="#e9a36c"/>
+  <rect x="226" y="18" width="80" height="100" rx="10" fill="${N}"/><rect x="236" y="30" width="60" height="30" rx="4" fill="#E3F5F3"/><text x="266" y="51" text-anchor="middle" font-size="13" font-weight="700" fill="${N}">0.0 MΩ</text>
+  <text x="266" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="${T}">MEGGER</text><text x="266" y="94" text-anchor="middle" font-size="9" fill="#9fb3c6">500 V DC</text>
+  <path d="M240 118 C220 150 110 30 100 58" fill="none" stroke="#C8312B" stroke-width="3"/>
+  <path d="M276 118 C276 160 200 160 176 150" fill="none" stroke="#111" stroke-width="3"/>`},
+ recover:{a:[[300,34,266,92],[118,28,112,106],[160,186,158,124],[212,190,230,172]],labels:'Old unit · Recovery machine · 454 tank',svg:`
+  <rect x="10" y="62" width="88" height="84" rx="8" fill="#F4F7F9" stroke="${N}" stroke-width="2.5"/><circle cx="46" cy="104" r="26" fill="#E6ECF0" stroke="${N}" stroke-width="2"/>
+  <circle cx="96" cy="116" r="5" fill="#b08d57" stroke="${N}"/>
+  <path d="M100 116 C120 116 118 110 128 110" fill="none" stroke="${A}" stroke-width="5" class="flowline"/>
+  <rect x="128" y="88" width="68" height="62" rx="8" fill="${T}" stroke="${N}" stroke-width="2"/><circle cx="148" cy="110" r="11" fill="#fff" stroke="${N}" stroke-width="2"/><line x1="148" y1="110" x2="154" y2="104" stroke="${N}" stroke-width="2"/><text x="178" y="138" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">A2L</text>
+  <path d="M196 118 C214 118 220 96 240 96" fill="none" stroke="${A}" stroke-width="5" class="flowline"/>
+  <rect x="240" y="62" width="52" height="104" rx="22" fill="#8C99A6" stroke="${N}" stroke-width="2.5"/><rect x="240" y="74" width="52" height="12" fill="#C8312B"/><rect x="256" y="50" width="20" height="14" rx="3" fill="${N}"/>
+  <rect x="230" y="166" width="72" height="12" rx="3" fill="${N}"/><text x="266" y="176" text-anchor="middle" font-size="8" fill="#fff">SCALE</text>`},
+ oil:{a:[[110,28,104,96],[198,188,168,150],[296,34,262,94]],labels:'Old compressor · Oil cup · Acid test kit',svg:`
+  <rect x="22" y="52" width="80" height="100" rx="34" fill="#46566A" stroke="${N}" stroke-width="2.5"/>
+  <path d="M96 92 C112 96 116 108 156 118" fill="none" stroke="#c9a227" stroke-width="5" class="flowline"/>
+  <path d="M138 112 L146 176 L190 176 L198 112 Z" fill="#ffffffaa" stroke="${N}" stroke-width="2.5"/><path d="M142 140 L146 174 L190 174 L194 140 Z" fill="#e6c25a"/>
+  <rect x="236" y="70" width="44" height="96" rx="8" fill="#fff" stroke="${N}" stroke-width="2.5"/><rect x="236" y="70" width="44" height="22" rx="8" fill="${T}"/><circle cx="258" cy="130" r="12" fill="#e6c25a" stroke="${N}"/>`},
+ swap:{a:[[150,26,150,66],[40,186,92,150],[226,30,232,80],[150,188,128,166],[302,188,282,120]],labels:'Labels · Flare nuts · New unit · Torque wrench · Wires',svg:`
+  <g opacity=".45"><rect x="14" y="70" width="96" height="86" rx="8" fill="#F4F7F9" stroke="${N}" stroke-width="2" stroke-dasharray="5 4"/></g>
+  <path d="M62 60 L62 36 M54 44 L62 34 L70 44" stroke="${N}" stroke-width="3" fill="none"/>
+  <rect x="118" y="56" width="62" height="20" rx="4" fill="#fff" stroke="${N}" stroke-width="1.5"/><text x="149" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="${N}">A   B</text>
+  <rect x="90" y="140" width="16" height="16" rx="3" fill="#b08d57" stroke="${N}" stroke-width="1.5"/><rect x="0" y="144" width="92" height="7" fill="${CU}"/>
+  <rect x="186" y="66" width="120" height="104" rx="10" fill="#fff" stroke="${T}" stroke-width="3"/><circle cx="236" cy="118" r="32" fill="#E6ECF0" stroke="${N}" stroke-width="2"/><g class="fan"><line x1="236" y1="88" x2="236" y2="148" stroke="${N}" stroke-width="3"/><line x1="206" y1="118" x2="266" y2="118" stroke="${N}" stroke-width="3"/></g>
+  <rect x="274" y="96" width="24" height="44" rx="3" fill="#DCE3E8" stroke="${N}" stroke-width="1.5"/>
+  <rect x="104" y="160" width="62" height="10" rx="5" fill="${N}" transform="rotate(-12 135 165)"/>`},
+ vacuum:{a:[[300,186,293,152],[140,192,150,163],[150,30,108,44],[22,100,94,132],[300,40,292,126],[226,190,232,140]],labels:'Pump · Yellow hose · Micron gauge · Service port',svg:`
+  <rect x="16" y="18" width="92" height="54" rx="8" fill="#fff" stroke="${N}" stroke-width="2.5"/><text x="62" y="48" text-anchor="middle" font-size="20" font-weight="700" fill="${T}" id="illmic">480</text><text x="62" y="63" text-anchor="middle" font-size="9" fill="#5B6B7A">microns</text>
+  <line x1="62" y1="72" x2="62" y2="118" stroke="${N}" stroke-width="2"/>
+  <rect x="14" y="118" width="84" height="44" rx="8" fill="${N}"/><circle cx="36" cy="140" r="11" fill="#16324F"/><text x="70" y="145" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">PUMP</text>
+  <path d="M98 150 C150 190 230 60 292 132" fill="none" stroke="${A}" stroke-width="6" stroke-linecap="round"/>
+  <rect x="180" y="60" width="104" height="112" rx="10" fill="#F4F7F9" stroke="${N}" stroke-width="2.5"/><circle cx="232" cy="116" r="32" fill="#E6ECF0" stroke="${N}" stroke-width="2"/>
+  <rect x="284" y="122" width="16" height="12" rx="2" fill="#b08d57" stroke="${N}"/><rect x="284" y="142" width="16" height="12" rx="2" fill="#b08d57" stroke="${N}"/>`},
+ paper:{a:[[134,186,190,70],[300,186,262,128],[30,26,58,78]],labels:'New nameplate · Start-up sheet · Phone camera',svg:`
+  <rect x="30" y="36" width="58" height="110" rx="12" fill="${N}"/><rect x="36" y="48" width="46" height="80" rx="4" fill="#7FE0D6"/><circle cx="59" cy="138" r="4" fill="#fff"/>
+  <path d="M88 86 L150 66 M88 98 L150 110" stroke="${T}" stroke-width="2" stroke-dasharray="4 4"/>
+  <rect x="150" y="44" width="80" height="84" rx="6" fill="#DCE3E8" stroke="${N}" stroke-width="2"/><text x="190" y="64" text-anchor="middle" font-size="9" font-weight="700" fill="${N}">MITSUBISHI</text>${[78,92,106].map(y=>`<rect x="160" y="${y}" width="60" height="6" rx="3" fill="#aab6c1"/>`).join('')}
+  <rect x="236" y="84" width="64" height="90" rx="6" fill="#fff" stroke="${N}" stroke-width="2"/><rect x="254" y="78" width="28" height="12" rx="3" fill="${N}"/>${[104,118,132,146].map(y=>`<rect x="246" y="${y}" width="44" height="5" rx="2" fill="#C3CDD6"/>`).join('')}`},
+};
+function illus(key,n){const I=ILL[key];if(!I)return'';const a=I.a.slice(0,n);
+ return `<div class="ill"><div class="stage" id="stage"><svg viewBox="0 0 320 200" role="img" aria-label="${esc(I.labels)}"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="${N}"/></marker></defs>${I.svg}
+ ${a.map(([px,py,tx,ty])=>`<line class="arrow" x1="${px}" y1="${py}" x2="${tx}" y2="${ty}" stroke="${N}" stroke-width="2.5" marker-end="url(#ah)"/>`).join('')}
+ ${a.map(([px,py],i)=>`<g class="pinG" data-pin="${i}"><circle class="ppulse" cx="${px}" cy="${py}" r="13" fill="${A}"/><circle class="pb" cx="${px}" cy="${py}" r="13" fill="${A}" stroke="${N}" stroke-width="3"/><text x="${px}" y="${py+5}" text-anchor="middle" font-size="15" font-weight="700" fill="${N}" font-family="Barlow Condensed,sans-serif">${i+1}</text></g>`).join('')}
+ </svg></div><div class="cap">${esc(I.labels)} · yellow pin = do that number here</div></div>`}
+
+/* ---------- shells ---------- */
+const ICON={today:'<path d="M4 6h16v14H4z M8 3v5 M16 3v5 M4 10h16"/>',jobs:'<path d="M4 7h16v12H4z M9 7V5h6v2"/>',units:'<path d="M3 5h18v14H3z M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0-8 0"/>',fixes:'<path d="M14 6l4 4-9 9H5v-4z M13 7l4 4"/>',help:'<path d="M12 21a9 9 0 1 1 0-18a9 9 0 0 1 0 18z M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14 M12 17h.01"/>'};
+function nav(on){return `<nav class="nav">${[['today','Today'],['jobs','Jobs'],['units','Units'],['fixes','Fixes'],['help','Help']].map(([h,l])=>`<a href="#${h}" class="${on===h?'on':''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[h]}</svg>${l}</a>`).join('')}</nav>`}
+function page(o){return `<div class="view ${dir==='back'?'back':dir==='still'?'still':''}"><header class="hd ${o.red?'red':''}">${o.back?`<a class="back" href="${o.back}" data-back>← ${esc(o.backL||'Back')}</a>`:''}${o.help!==false?'<a class="help" href="#help" aria-label="How to use">?</a>':''}<div class="eyebrow">${o.eyebrow||''}</div><h1>${o.title}</h1>${o.bar!=null?`<div class="bar"><i id="hbar" data-w="${o.bar}"></i></div><div class="barlbl">${o.barL||''}</div>`:''}</header><main class="st">${o.body}</main></div>${nav(o.nav)}`}
+const st=(html,i)=>html.replace(/^<(\w+)/,`<$1 style="--i:${i}"`);
+const stag=arr=>arr.filter(Boolean).map((h,i)=>st(h,i)).join('');
+
+/* ---------- views ---------- */
+function greet(){const h=+new Date().toLocaleString('en-US',{hour:'numeric',hour12:false,timeZone:'America/Los_Angeles'});return h<12?'Good morning':h<17?'Good afternoon':'Good evening'}
+function jobCard(j,big){const m=model(j.model_id);return `<a class="tag ${big?'':'small'} ${j.status==='Done'?'done':''}" data-tilt href="#job-${esc(j.id)}"><div class="when">${big?'Your next job · ':''}${esc(fmtDate(j.job_date))}${j.window_text?' · '+esc(j.window_text):''}</div><h3>${esc(j.title)}</h3><div class="where">${esc(j.address||j.city||'')}</div><div class="where" style="margin-top:4px">${m?esc(m.brand+' '+m.model)+' · ':''}Job ${esc(j.job_no||'')} · ${esc(j.status||'')}</div></a>`}
+const TIC={map:'<path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',call:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',photos:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 8"/>',old:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="11" cy="12" r="4.5"/><path d="M11 7.5v9M6.5 12h9"/>',notes:'<path d="M7 3h10v18H7z M10 8h4 M10 12h4 M10 16h2"/>',manual:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z M19 19v2H6"/>',pack:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z M3 7l9 4 9-4 M12 11v10"/>',camera:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',check:'<path d="M5 12l5 5 9-10"/>',work:'<path d="M8 5l11 7-11 7z"/>',drive:'<path d="M3 13l2-6h14l2 6v5h-3v-2H6v2H3z M3 13h18"/>',st:'<path d="M14 6a4 4 0 0 0 5 5l-9 9-3-3 9-9a4 4 0 0 0-2-2z"/>'};
+const ic=(k,cls)=>`<svg class="${cls||''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${TIC[k]}</svg>`;
+function stages(j){const pack=j.pack||[],pk=store.get('fb-pack-'+j.id,{}),pn=pack.filter((_,i)=>pk[i]).length,steps=j.steps||[],sd=steps.filter((_,si)=>stepDone(j,si)).length,first=steps.findIndex((_,si)=>!stepDone(j,si)),jst=store.get('fb-j-'+j.id,{}),r=j.results||{},ups=(DB.uploads||[]).filter(u=>u.job_id===j.id);
+ const a=[
+  {k:'pack',icon:'pack',t:'Pack the truck',sub:pack.length?`${pn} of ${pack.length} packed`:'Nothing special to pack',done:pn===pack.length,go:`#sec-${j.id}-pack`,btn:'Open the pack list'},
+  {k:'drive',icon:'drive',t:'Drive there',sub:jst.here?'You are there':(j.city||'Map and directions'),done:!!jst.here,go:`#sec-${j.id}-map`,btn:'Show the map'},
+  {k:'work',icon:'work',t:`Do the work`,sub:steps.length?`${sd} of ${steps.length} steps done`:'No steps',done:steps.length>0&&sd===steps.length,go:`#step-${j.id}-${Math.max(0,first)}`,btn:first>=0&&steps[first]?`Step ${first+1}: ${steps[first].title}`:'Review the steps'},
+  {k:'snap',icon:'camera',t:'Snap the new nameplate',sub:r.new_serial?`Serial ${r.new_serial}`:ups.length?'Photo sent':'Model and serial',done:!!(r.new_serial||ups.length),go:`#sec-${j.id}-snap`,btn:'Take the nameplate photo'},
+  {k:'finish',icon:'check',t:'Finish the job',sub:j.status==='Done'?'Done':'Save results, then Complete in ServiceTitan',done:j.status==='Done',go:`#sec-${j.id}-finish`,btn:'Finish the job'}];
+ const now=a.findIndex(x=>!x.done);a.forEach((x,i)=>x.now=i===now);return a}
+function roadHtml(j,st){return `<div class="road">${st.map((x,i)=>`<a href="${esc(x.go)}" class="${x.done?'done':''} ${x.now?'now':''}"><span class="dot">${ic(x.done?'check':x.icon)}</span><span class="t">${i+1}. ${esc(x.t)}<small>${esc(x.sub)}</small></span><span class="chev">›</span></a>`).join('')}</div>`}
+function nextHtml(j,st){const n=st.find(x=>x.now);if(!n)return `<div class="alldone"><b>✓ Job finished</b><p style="margin:6px 0 0">Nice work.</p></div>`;return `<div class="nextcard"><div class="lbl">DO THIS NEXT</div><div class="what">${esc(n.t)}</div><div class="why">${esc(n.sub)}</div><a class="btn ${n.k==='finish'?'':'glow'}" href="${esc(n.go)}">${esc(n.btn)} →</a></div>`}
+function tilesHtml(j){const m=model(j.model_id);const T=[
+  ['map','Map','Where the unit is',`#sec-${j.id}-map`,'#10A39A'],
+  ['call','Call','Customer and boss',`#sec-${j.id}-call`,'#1E8A4C'],
+  ['photos','Photos',`${(j.photos||[]).length} from past visits`,`#sec-${j.id}-photos`,'#2B63D9'],
+  ['old','Old unit','Model and serial',`#sec-${j.id}-old`,'#6D44C9'],
+  ['notes','Office notes','What the office said',`#sec-${j.id}-notes`,'#F2A900'],
+  ['st','ServiceTitan','Dispatch · Arrive',`#sec-${j.id}-map`,'#0D2238']];
+ return `<div class="tiles">${T.map(([k,b,sm,href,c])=>`<a class="tile" href="${esc(href)}"><span class="ic" style="background:${c}">${ic(k)}</span><b>${esc(b)}</b><small>${esc(sm)}</small></a>`).join('')}</div>`}
+function vToday(){const t=today();const up=DB.jobs.filter(j=>j.job_date>=t&&j.status!=='Done').sort((a,b)=>a.job_date.localeCompare(b.job_date));const n=up[0];
+ const dateL=new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric',timeZone:'America/Los_Angeles'});
+ if(!n)return page({nav:'today',eyebrow:dateL,title:greet()+', Bohdan',body:`<div class="card empty"><h2>No jobs on the board</h2><p>New jobs come in from ServiceTitan every morning at 3:37 AM.</p></div>`});
+ const st=stages(n);
+ return page({nav:'today',eyebrow:dateL,title:greet()+', Bohdan',body:stag([
+  jobCard(n,true),nextHtml(n,st),
+  `<a class="btn ghost" href="#job-${esc(n.id)}">See the whole job</a>`,
+  up.length>1?`<div class="card"><h2>Coming up</h2>${up.slice(1).map(j=>jobCard(j)).join('<div style="height:10px"></div>')}</div>`:''])})}
+function vJob(id){const j=job(id);if(!j)return vMissing();const st=stages(j);const dn=st.filter(x=>x.done).length;const m=model(j.model_id);
+ return page({nav:'jobs',back:'#today',backL:'Today',eyebrow:`Job ${esc(j.job_no)} · ${esc(j.window_text||'')}`,title:esc(j.title),bar:dn/st.length*100,barL:`${dn} of ${st.length} parts of the day done`,body:stag([
+  nextHtml(j,st),
+  `<h2 style="margin:30px 2px 0;padding-top:4px">Your day on this job</h2>`,roadHtml(j,st),
+  `<h2 style="margin:30px 2px 0;padding-top:4px">Need something?</h2>`,tilesHtml(j),
+  m?`<a class="btn ghost" href="#unit-${esc(m.id)}">The unit and its manuals</a>`:'',
+  `<button class="btn amber" data-call="dylan">Not sure? Call Dylan</button>`])})}
+function secPage(j,title,eyebrow,body){return page({nav:'jobs',back:'#job-'+j.id,backL:'Back to the job',eyebrow,title,body})}
+function vSec(id,name){const j=job(id);if(!j)return vMissing();const pack=j.pack||[],pk=store.get('fb-pack-'+j.id,{}),r=j.results||{};
+ if(name==='pack')return secPage(j,'Pack the truck','Part 1 of the day',stag([`<div class="card">${pack.length?pack.map((p,i)=>`<label class="chk ${pk[i]?'on':''}"><input type="checkbox" data-pack="${i}" ${pk[i]?'checked':''}><span class="txt" style="font-size:18px">${esc(p)}</span></label>`).join(''):'<p class="muted">Nothing special for this job.</p>'}</div>`,`<a class="btn" href="#sec-${esc(j.id)}-map">Everything is packed: show the map →</a>`]));
+ if(name==='map')return secPage(j,'Drive there','Part 2 of the day',stag([mapCard(j),stCard(j),`<button class="btn" data-here>I'm there ✓ Start the work</button>`]));
+ if(name==='call')return secPage(j,'Who to call','Phone numbers',stag([contactsCard(j),`<button class="btn amber" data-call="dylan">Call Dylan (boss)</button>`,`<button class="btn ghost" data-call="shawn">Call Shawn (backup)</button>`]));
+ if(name==='photos')return secPage(j,'Site photos','From past visits',stag([photosCard(j)||'<div class="card empty">No photos yet.</div>']));
+ if(name==='old')return secPage(j,'The old unit','What is there now',stag([equipCard(j)||'<div class="card empty">No equipment saved.</div>',j.model_id?`<a class="btn ghost" href="#unit-${esc(j.model_id)}">Manuals and known problems</a>`:'']));
+ if(name==='notes')return secPage(j,'Office notes','What the office said',stag([j.plain_summary?`<div class="card plain"><h2>In plain words</h2><p style="margin:0;font-size:18px">${esc(j.plain_summary)}</p></div>`:'',j.office_notes?`<div class="card"><h2>Exactly what the office wrote</h2><p style="margin:0">${esc(j.office_notes)}</p></div>`:'',j.pdf_url?`<a class="btn ghost" href="${esc(j.pdf_url)}" target="_blank" rel="noopener">Open the PDF guide</a>`:'']));
+ if(name==='snap')return secPage(j,'Snap the new nameplate','Part 4 of the day',stag([snapCard(j),`<a class="btn ghost" href="#sec-${esc(j.id)}-finish">Next: finish the job →</a>`]));
+ if(name==='finish')return secPage(j,'Finish the job','Part 5 of the day',stag([`<form class="card" id="resform"><h2>Write down what you found</h2><p class="muted" style="margin:0">Fill what you have. Empty is OK.</p>${[['megger','Megger reading'],['oil','Oil / acid test'],['recovered','Pounds of gas recovered'],['new_model','New model'],['new_serial','New serial'],['vacuum','Vacuum result (microns)'],['charge','Extra gas added']].map(([k,l])=>`<label class="f">${l}<input name="${k}" value="${esc(r[k]||'')}"></label>`).join('')}<label class="f">Status<select name="status">${['Scheduled','In progress','Done'].map(x=>`<option ${j.status===x?'selected':''}>${x}</option>`).join('')}</select></label><label class="f">Notes<textarea name="notes" rows="3">${esc(r.notes||'')}</textarea></label><button class="btn">Save</button></form>`,
+  j.appt_id?`<div class="card"><h2>Last: complete it in ServiceTitan</h2><p style="margin:0">Open the job, check the forms Claude saved, then tap <b>Complete</b> yourself.</p><a class="btn" href="https://go.servicetitan.com/m/job-appointment/${esc(j.appt_id)}/details" target="_blank" rel="noopener">Open the job in ServiceTitan</a></div>`:'']));
+ return vMissing()}
+function mapCard(j){if(!j.address)return'';const q=encodeURIComponent(j.address);return `<div class="card"><h2>How to get there</h2>${j.unit_location?`<p style="margin:0"><b>Where the unit is:</b> ${esc(j.unit_location)}</p>`:''}<div class="map"><iframe loading="lazy" referrerpolicy="no-referrer" title="Map" src="https://maps.google.com/maps?q=${q}&z=17&output=embed"></iframe></div><p class="muted" style="font-size:14px;margin:8px 0 0">${esc(j.address)}</p><a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=${q}" target="_blank" rel="noopener">Start directions (Google Maps)</a></div>`}
+const telFmt=p=>{const d=String(p||'').replace(/\D/g,'').replace(/^1(?=\d{10}$)/,'');return d.length===10?`(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`:p};
+function contactsCard(j){const c=j.contacts||[];if(!c.length&&!j.customer_phone)return'';const list=c.length?c:[{name:j.customer,role:'Customer',phone:j.customer_phone}];
+ return `<div class="card"><h2>Who to call</h2>${list.map(x=>`<div class="steprow" style="cursor:default"><span class="n" style="background:var(--teal)">📞</span><span class="t">${esc(x.name)}<small>${esc(x.role||'')} · ${esc(telFmt(x.phone))}${x.email?' · '+esc(x.email):''}</small></span><a class="btn small" style="width:auto;min-height:44px;margin:0;padding:0 16px" href="tel:${esc(x.phone)}">Call</a></div>`).join('')}</div>`}
+function equipCard(j){const e=j.equipment||[];if(!e.length)return'';return `<div class="card"><h2>Old units at this house</h2>${e.map(x=>`<div class="plate" style="margin-top:10px;padding:16px 18px"><div class="brandline">${esc(x.name)}</div><dl style="margin-top:6px"><dt>Model</dt><dd><b>${esc(x.model)}</b></dd><dt>Serial</dt><dd><b>${esc(x.serial)}</b></dd>${x.installed?`<dt>Installed</dt><dd>${esc(x.installed)}</dd>`:''}</dl></div>`).join('')}</div>`}
+function stCard(j){if(!j.appt_id)return'';const u=`https://go.servicetitan.com/m/job-appointment/${esc(j.appt_id)}/details`;return `<div class="card"><h2>ServiceTitan</h2><p class="muted" style="margin:0">Each button opens this job in ServiceTitan. Then tap <b>JOB ACTIONS</b> and the same word.</p><div class="st3"><a class="btn" href="${u}" target="_blank" rel="noopener">Dispatch</a><a class="btn" href="${u}" target="_blank" rel="noopener">Arrive</a></div><a class="btn ghost" href="${u}" target="_blank" rel="noopener">Open the job</a></div>`}
+function photosCard(j,limit){const ph=j.photos||[];if(!ph.length)return'';const groups={};ph.forEach((p,i)=>{(groups[p.visit]=groups[p.visit]||[]).push([p,i])});
+ return `<div class="card"><h2>Site photos</h2><p class="muted" style="margin:0">${ph.length} photos from ${Object.keys(groups).length} past visits. Tap one to see it big.</p>${Object.values(groups).map(g=>{const p=g[0][0];return `<div class="visit">${esc(p.type)} <small>· ${esc(p.date)} · ${esc(p.by)}</small></div><div class="photos">${g.slice(0,limit||99).map(([x,i])=>`<button data-ph="${i}" aria-label="Photo ${i+1}"><img loading="lazy" src="${esc(x.src)}" alt=""></button>`).join('')}</div>`}).join('')}</div>`}
+const UPS={new:['Sent. Claude will read it','warn'],read:['Read by Claude','go'],filled:['Saved in ServiceTitan (not completed)','go'],error:['Could not read: send a closer photo','stop']};
+function uploadsHtml(j){const u=(DB.uploads||[]).filter(x=>x.job_id===j.id);if(!u.length)return'';return u.map(x=>{const st=UPS[x.status]||[x.status,'warn'];const r=x.result||{};return `<div class="note ${st[1]}"><b>${esc(st[0])}</b> · ${new Date(x.created_at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}${r.model||r.serial?`<br>Model <b>${esc(r.model||'?')}</b> · Serial <b>${esc(r.serial||'?')}</b>`:''}${r.message?`<br>${esc(r.message)}`:''}</div>`}).join('')}
+function snapCard(j){const r=j.results||{};return `<div class="card" id="snap"><h2>Snap the new nameplate</h2><p class="muted" style="margin:0">Take a clear photo of the sticker. It is sent to Claude, who reads the model and serial and fills the ServiceTitan form with <b>Save only</b>. You tap Complete yourself.</p><label class="btn" style="cursor:pointer">📷 Take nameplate photo<input id="snapin" type="file" accept="image/*" capture="environment" hidden></label><img id="snapimg" class="snapprev" alt="Nameplate photo" hidden><div id="snapstat">${uploadsHtml(j)}</div>
+ <details class="more"><summary>Or type it yourself</summary><label class="f">New model<input id="snapmodel" value="${esc(r.new_model||'')}" autocapitalize="characters"></label><label class="f">New serial<input id="snapserial" value="${esc(r.new_serial||'')}" autocapitalize="characters"></label><button class="btn" id="snapsave">Save model and serial</button></details></div>`}
+function shrink(file){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1600/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(im.src);res(c.toDataURL('image/jpeg',.82))};im.onerror=()=>rej(new Error('Could not open the photo'));im.src=URL.createObjectURL(file)})}
+function lightbox(j,i){const ph=j.photos||[];const d=document.createElement('div');d.className='lb';const show=()=>{const p=ph[i];d.innerHTML=`<div class="lbbar"><span>${i+1} / ${ph.length} · ${esc(p.type)} · ${esc(p.date)}</span><button data-x>Close</button></div><img src="${esc(p.src)}" alt=""><div class="lbnav"><button data-p>← Previous</button><button data-n>Next →</button></div>`;d.querySelector('[data-x]').onclick=()=>d.remove();d.querySelector('[data-p]').onclick=()=>{i=(i-1+ph.length)%ph.length;show()};d.querySelector('[data-n]').onclick=()=>{i=(i+1)%ph.length;show()}};show();document.body.append(d);let x0=null;d.addEventListener('touchstart',e=>x0=e.touches[0].clientX,{passive:true});d.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50){i=(i+(dx<0?1:-1)+ph.length)%ph.length;show()}x0=null})}
+const mins=m=>m>=60?(m/60)+(m>=120?' hours':' hour'):m+' minutes';
+function vStep(id,si){const j=job(id);if(!j||!j.steps||!j.steps[si])return vMissing();const s=j.steps[si];const c=checks(j);const tasks=s.tasks||[];const last=si===j.steps.length-1;
+ const list=store.get('fb-listmode',false);const cur=tasks.findIndex((_,ti)=>!c[si+'-'+ti]);const all=cur<0;
+ const focus=all?`<div class="alldone"><b>✓ All ${tasks.length} done</b><p style="margin:6px 0 0">Check the boxes below, then go to the next step.</p></div>`
+  :`<div class="card focus" id="fcard"><div class="fhead"><span class="pin big">${cur+1}</span><span>Do number ${cur+1} of ${tasks.length}<br><span class="chip c-${esc(tasks[cur].tag)}" style="margin-top:4px">${esc(TAGN[tasks[cur].tag]||tasks[cur].tag)}</span></span></div><p class="ftext">${esc(tasks[cur].text)}</p><p class="muted" style="font-size:14px;margin:8px 0 0">Look at yellow pin <b>${cur+1}</b> in the drawing above.</p><button class="btn" id="fdone" data-ti="${cur}">✓ Done${cur+1<tasks.length?': next one':''}</button>${cur>0?`<button class="btn ghost" id="fprev" data-ti="${cur-1}">← Go back one</button>`:''}<div class="fdots">${tasks.map((_,ti)=>`<i class="${c[si+'-'+ti]?'on':ti===cur?'cur':''}"></i>`).join('')}</div></div>`;
+ const listCard=`<div class="card"><h2>All instructions</h2>${tasks.map((t,ti)=>`<div class="task ${c[si+'-'+ti]?'on':''}" data-row="${ti}"><span class="pin">${ti+1}</span><div class="body"><span class="chip c-${esc(t.tag)}">${esc(TAGN[t.tag]||t.tag)}</span><div>${esc(t.text)}</div></div><input class="tick" type="checkbox" aria-label="Done" data-k="${si}-${ti}" ${c[si+'-'+ti]?'checked':''}></div>`).join('')}</div>`;
+ return page({nav:'jobs',back:'#job-'+j.id,backL:'Job',eyebrow:`Step ${si+1} of ${j.steps.length}${s.minutes?' · about '+mins(s.minutes):''}`,title:esc(s.title),bar:(si+1)/j.steps.length*100,barL:`${tasks.filter((_,ti)=>c[si+'-'+ti]).length} of ${tasks.length} done in this step`,body:stag([
+  illus(s.illus,tasks.length),
+  s.note?`<div class="note ${esc(s.note.tone)}">${esc(s.note.text)}</div>`:'',
+  all?focus+listCard:(list?listCard:focus),
+  !list&&!all?`<button class="linkbtn" data-list="1">Show all ${tasks.length} at once</button>`:(list&&!all?`<button class="linkbtn" data-list="0">Show one at a time</button>`:''),
+  widget(s.widget,j,si),
+  s.ok?`<div class="ok"><b>✓ ${esc(s.ok)}</b>${s.okSub?`<p>${esc(s.okSub)}</p>`:''}</div>`:'',
+  s.stop?`<div class="no"><b>✕ ${esc(s.stop)}</b>${s.stopSub?`<p>${esc(s.stopSub)}</p>`:''}</div>`:'',
+  last?`<a class="btn ${all?'glow':'ghost'}" id="nextbtn" href="#sec-${esc(j.id)}-snap">Next: snap the new nameplate →</a>`:`<a class="btn ${all?'glow':'ghost'}" id="nextbtn" href="#step-${esc(j.id)}-${si+1}">Next step: ${esc(j.steps[si+1].title)} →</a>`,
+  `<button class="btn amber" data-call="dylan">Call Dylan</button>`,
+  si>0?`<a class="btn ghost" href="#step-${esc(j.id)}-${si-1}" data-back>← Previous step</a>`:''])})}
+function widget(w,j,si){if(!w)return'';
+ if(w.type==='megger')return `<div class="widget"><h3>What does the number mean?</h3><svg viewBox="0 0 300 150" role="img" aria-label="Megger dial"><path d="M40 120 A110 110 0 0 1 260 120" fill="none" stroke="#C3CDD6" stroke-width="16"/><path d="M40 120 A110 110 0 0 1 95 25" fill="none" stroke="#C8312B" stroke-width="16"/><path d="M205 25 A110 110 0 0 1 260 120" fill="none" stroke="#1E8A4C" stroke-width="16"/><line class="needle" id="nd" x1="150" y1="120" x2="150" y2="30" stroke="#0D2238" stroke-width="5" stroke-linecap="round"/><circle cx="150" cy="120" r="9" fill="#0D2238"/></svg>
+  <div class="meaning"><button class="lo" data-meg="-62"><b>0–1 MΩ</b><span>${esc(w.low)}</span></button><button class="hi" data-meg="62" data-stop="1"><b>Very high</b><span>${esc(w.high)}</span></button></div><p class="muted" style="font-size:14px;margin:10px 0 0">Tap the box that matches your reading.</p></div>`;
+ if(w.type==='vacuum')return `<div class="widget"><h3>Then the 10-minute test</h3><p class="muted" style="margin:0 0 8px;font-size:15px">Close the valve to the pump, then start the timer. If the number stays under 500, you pass. If it climbs fast, there is a leak.</p><div class="big" id="timer">10:00</div><button class="btn" id="tbtn">Start the 10-minute timer</button></div>`;
+ if(w.type==='decision')return `<div class="widget"><h3>${esc(w.question)}</h3>${w.options.map((o,i)=>`<button class="btn ${o.tone==='stop'?'red':''}" data-dec="${i}">${esc(o.label)}</button>`).join('')}<div id="dres"></div></div>`;
+ if(w.type==='torque')return `<div class="widget"><h3>How tight (flare nuts)</h3><table><thead><tr><th>Pipe</th><th>N·m</th><th>ft·lb ≈</th></tr></thead><tbody>${w.rows.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</tbody></table><p class="muted" style="font-size:13px;margin:8px 0 0">Typical values. The manual in the box wins.</p></div>`;
+ if(w.type==='flow'){const n=w.nodes;return `<div class="widget"><h3>Where the gas goes</h3><svg viewBox="0 0 300 70" role="img" aria-label="${esc(n.join(' to '))}">${n.map((t,i)=>`<rect x="${6+i*104}" y="14" width="84" height="42" rx="10" fill="${i===n.length-1?'#fff':'#0D2238'}" stroke="${i===n.length-1?'#C8312B':'none'}" stroke-width="3"/><text x="${48+i*104}" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="${i===n.length-1?'#0D2238':'#fff'}">${esc(t)}</text>${i<n.length-1?`<line class="flowline" x1="${90+i*104}" y1="35" x2="${110+i*104}" y2="35" stroke="#10A39A" stroke-width="5"/>`:''}`).join('')}</svg></div>`}
+ return''}
+function vStop(id,si,why){const j=job(id);if(!j)return vMissing();
+ return page({red:true,nav:'jobs',back:`#step-${j.id}-${si}`,backL:'Back to the step',eyebrow:`Step ${+si+1} · Stop`,title:'STOP. Do not go on yet.',body:`<div class="card shake"><h2 style="color:var(--red)">Why you are stopping</h2><p style="margin:0">${esc(why||'The reading does not match what the job expects.')}</p></div>
+  <div class="card"><h2>Do this now</h2>${['Close everything back up. Leave the power OFF.','Take a photo of what you found (reading, oil, test kit).','Call Dylan and tell him what you found. No answer? Call Shawn.'].map((t,i)=>`<div class="stopnum"><span class="pin">${i+1}</span><span>${t}</span></div>`).join('')}</div>
+  <button class="btn red" data-call="dylan">Call Dylan now</button><button class="btn amber" data-call="shawn">Call Shawn</button><a class="btn ghost" href="#step-${esc(j.id)}-${si}" data-back>I made a mistake: go back</a>`})}
+function vUnits(){return page({nav:'units',eyebrow:'Every unit you have worked on',title:'Units',body:`<input class="search" id="q" type="search" placeholder="Search model or brand" aria-label="Search units"><div id="list">${unitList('')}</div>`})}
+const unitList=q=>DB.models.filter(m=>!q||JSON.stringify(m).toLowerCase().includes(q)).map((m,i)=>`<a class="plate" data-tilt style="margin-top:14px;--i:${i}" href="#unit-${esc(m.id)}"><div class="brandline">${esc(m.brand).toUpperCase()}</div><div class="model">${esc(m.model)}</div><dl><dt>What it is</dt><dd>${esc(m.type||'')}</dd><dt>Gas inside</dt><dd>${esc(m.refrigerant||'')}</dd></dl></a>`).join('')||'<p class="empty">No units match.</p>';
+function vUnit(id){const m=model(id);if(!m)return vMissing();const w=(m.specs||[]).find(s=>/lb/i.test(s)),p=(m.specs||[]).find(s=>/V/.test(s)&&/ph/i.test(s));
+ return page({nav:'units',back:'#units',backL:'Units',eyebrow:'The unit',title:esc(m.brand+' '+m.model),body:stag([
+  `<div class="plate" data-tilt><div class="brandline">${esc(m.brand).toUpperCase()}</div><div class="model">${esc(m.model)}</div><dl><dt>What it is</dt><dd>${esc(m.type||'')}</dd><dt>Gas inside</dt><dd>${esc(m.refrigerant||'')}${/A2L/i.test(m.refrigerant||'')?'. No flames near it.':''}</dd>${w?`<dt>Weight</dt><dd>${esc(w)}</dd>`:''}${p?`<dt>Power</dt><dd>${esc(p)}</dd>`:''}</dl></div>`,
+  `<div class="card"><h2>Manuals</h2>${(m.manuals||[]).map(x=>`<a class="btn ghost" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join('')||'<p class="muted">None yet.</p>'}</div>`,
+  (m.known_issues||[]).length?`<div class="card watch"><h2>Watch out: from other techs</h2><ul style="padding-left:18px;margin:0">${m.known_issues.map(k=>`<li>${esc(k.text||k)}${k.source?` <a href="${esc(k.source)}" target="_blank" rel="noopener">source</a>`:''}</li>`).join('')}</ul></div>`:'',
+  `<div class="card"><h2>All specs</h2><ul style="padding-left:18px;margin:0">${(m.specs||[]).map(s=>`<li>${esc(s)}</li>`).join('')}</ul>${m.notes?`<p class="muted">${esc(m.notes)}</p>`:''}</div>`,
+  `<div class="card"><h2>Jobs on this unit</h2>${DB.jobs.filter(j=>j.model_id===id).map(j=>`<p style="margin:6px 0"><a href="#job-${esc(j.id)}">${esc(fmtDate(j.job_date))}: ${esc(j.title)}</a></p>`).join('')||'<p class="muted">None.</p>'}</div>`])})}
+function vJobs(){return page({nav:'jobs',eyebrow:'Every job',title:'Jobs',body:`<input class="search" id="q" type="search" placeholder="Search job, customer, city" aria-label="Search jobs"><div id="list">${jobList('')}</div>${DB.reports.length?`<div class="card"><h2>Daily reports</h2>${DB.reports.map(r=>`<p style="margin:8px 0"><b>${esc(fmtDate(r.report_date))}</b>: ${esc(r.title||'')}${r.pdf_url?` · <a href="${esc(r.pdf_url)}" target="_blank" rel="noopener">PDF</a>`:''}</p>`).join('')}</div>`:''}`})}
+const jobList=q=>DB.jobs.filter(j=>!q||JSON.stringify(j).toLowerCase().includes(q)).map(j=>`<div style="margin-top:14px">${jobCard(j)}</div>`).join('')||'<p class="empty">No jobs match.</p>';
+function vFixes(){return page({nav:'fixes',eyebrow:'Saved so the same problem is quicker next time',title:'Fixes',body:`<details class="card more"><summary>+ Log a fix</summary><form id="fixform"><label class="f">Unit<select name="model_id"><option value="">—</option>${DB.models.map(m=>`<option value="${esc(m.id)}">${esc(m.brand+' '+m.model)}</option>`).join('')}</select></label><label class="f">Problem<input name="problem" required></label><label class="f">What you found<textarea name="findings" rows="2"></textarea></label><label class="f">What fixed it<textarea name="fix" rows="2"></textarea></label><button class="btn">Save fix</button></form></details>
+ ${DB.trouble.map(f=>{const m=model(f.model_id);return `<div class="card"><div class="muted" style="font-size:14px">${new Date(f.created_at).toLocaleDateString()}${m?' · '+esc(m.brand+' '+m.model):''}</div><h2 style="font-size:22px;margin-top:4px">${esc(f.problem)}</h2>${f.findings?`<p><b>Found:</b> ${esc(f.findings)}</p>`:''}${f.fix?`<p><b>Fix:</b> ${esc(f.fix)}</p>`:''}${(f.sources||[]).map(s=>`<a href="${esc(s.url||s)}" target="_blank" rel="noopener">${esc(s.title||'Source')}</a>`).join(' · ')}</div>`}).join('')||'<p class="empty">No fixes logged yet.</p>'}`})}
+function vHelp(){return page({nav:'help',help:false,eyebrow:'How to use Field Book',title:'Never done this before? Read this once.',body:stag([
+  `<div class="card"><p style="margin:0">Every job is split into small steps. Each step shows a drawing of what you will really see, with numbered yellow pins. The numbers in the drawing match the numbered instructions underneath. Arrows point at the exact part to touch.</p></div>`,
+  `<div class="card"><div style="display:flex;gap:12px;align-items:center"><span class="pin">1</span><b>Yellow pin = do instruction 1 HERE</b></div></div>`,
+  `<div class="card"><h2>What the colored labels mean</h2>${Object.keys(TAGN).map(k=>`<div style="display:flex;gap:12px;align-items:center;padding:7px 0"><span class="chip c-${k}" style="margin:0;min-width:78px;text-align:center">${TAGN[k]}</span><span>${TAGM[k]}</span></div>`).join('')}</div>`,
+  `<div class="ok"><b>Green box = you are on track</b></div>`,`<div class="no"><b>Red box = STOP and call Dylan</b></div>`,
+  `<div class="card"><h2>Phone numbers</h2><p class="muted" style="margin-top:0">Saved on this phone for the Call buttons.</p><button class="btn ghost" data-setc="dylan">Set Dylan's number</button><button class="btn ghost" data-setc="shawn">Set Shawn's number</button></div>`,
+  `<a class="btn" href="#today">Got it: show my job →</a>`,`<a class="btn ghost" href="#lock">Lock the app</a>`])})}
+function vMissing(){return page({nav:'today',title:'Not found',body:'<div class="card empty">That page is not here anymore.</div><a class="btn" href="#today">Go to Today</a>'})}
+
+/* ---------- wiring ---------- */
+function tiltAll(){$$('[data-tilt],#stage').forEach(el=>{el.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;el.style.transform=`rotateY(${x*8}deg) rotateX(${(el.id==='stage'?9:0)-y*8}deg) translateZ(0)`});el.addEventListener('pointerleave',()=>el.style.transform='')})}
+function wire(h){
+ requestAnimationFrame(()=>{const b=$('#hbar');if(b)b.style.width=b.dataset.w+'%'});
+ tiltAll();
+ $$('[data-call]').forEach(b=>b.onclick=()=>call(b.dataset.call));
+ $$('[data-setc]').forEach(b=>b.onclick=()=>{const c=store.get('fb-contacts',{});delete c[b.dataset.setc];store.set('fb-contacts',c);call(b.dataset.setc)});
+ $$('[data-back]').forEach(a=>a.addEventListener('click',()=>dir='back'));
+ const q=$('#q');if(q)q.oninput=()=>{const v=q.value.trim().toLowerCase();$('#list').innerHTML=h==='units'?unitList(v):jobList(v);tiltAll()};
+ const ff=$('#fixform');if(ff)ff.onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(ff));Object.keys(d).forEach(k=>{if(!d[k])d[k]=null});const {data,error}=await api.rpc('fb_add_fix',{tok:TOK(),fix:d});if(error)return toast('Not saved: '+error.message);DB.trouble.unshift(data);toast('Fix saved');route()};
+ let m;
+ const jm=h.match(/^job-(.+)$/)||h.match(/^step-(.+)-\d+$/)||h.match(/^sec-(.+)-[a-z]+$/);
+ const jj=jm?job(jm[1]):(h==='today'||!h?DB.jobs.filter(x=>x.job_date>=today()&&x.status!=='Done').sort((a,b)=>a.job_date.localeCompare(b.job_date))[0]:null);
+ if(jj){$$('[data-ph]').forEach(b=>b.onclick=()=>lightbox(jj,+b.dataset.ph));
+  const si=$('#snapin');if(si){si.onchange=async()=>{const file=si.files[0];if(!file)return;const im=$('#snapimg');im.src=URL.createObjectURL(file);im.hidden=false;$('#snapstat').innerHTML='<div class="note">Sending the photo…</div>';
+    try{const img=await shrink(file);const {data,error}=await api.rpc('fb_upload',{tok:TOK(),job:jj.id,img,kind:'nameplate',note:null});if(error)throw error;DB.uploads=[data,...(DB.uploads||[])];$('#snapstat').innerHTML=uploadsHtml(jj);toast('Photo sent ✓');const r=im.getBoundingClientRect();burst(r.left+r.width/2,r.top+40)}catch(e){$('#snapstat').innerHTML=`<div class="note stop">Not sent: ${esc(e.message)}. Check signal and try again.</div>`}};
+   $('#snapsave').onclick=async()=>{const res=Object.assign({},jj.results||{},{new_model:$('#snapmodel').value.trim(),new_serial:$('#snapserial').value.trim(),install_date:today()});const {error}=await api.rpc('fb_save_results',{tok:TOK(),job:jj.id,res,st:jj.status==='Scheduled'?'In progress':jj.status});if(error)return toast('Not saved: '+error.message);jj.results=res;if(jj.status==='Scheduled')jj.status='In progress';toast('Model and serial saved ✓');const r=$('#snapsave').getBoundingClientRect();burst(r.left+r.width/2,r.top)}}}
+ if(m=h.match(/^sec-(.+)-[a-z]+$/)){const j=job(m[1]);if(!j)return;
+  const hb=$('[data-here]');if(hb)hb.onclick=()=>{const s=store.get('fb-j-'+j.id,{});s.here=true;store.set('fb-j-'+j.id,s);const f=(j.steps||[]).findIndex((_,si)=>!stepDone(j,si));location.hash=`step-${j.id}-${Math.max(0,f)}`};
+  $$('[data-pack]').forEach(b=>b.onchange=()=>{const pk=store.get('fb-pack-'+j.id,{});pk[b.dataset.pack]=b.checked;store.set('fb-pack-'+j.id,pk);b.closest('.chk').classList.toggle('on',b.checked)});
+  const rf=$('#resform');if(rf)rf.onsubmit=async e=>{e.preventDefault();const f=Object.assign({},j.results||{},Object.fromEntries(new FormData(e.target)));const status=f.status;delete f.status;const {error}=await api.rpc('fb_save_results',{tok:TOK(),job:j.id,res:f,st:status});if(error)return toast('Not saved: '+error.message);Object.assign(j,{results:f,status});toast('Results saved ✓');const r=e.target.querySelector('.btn').getBoundingClientRect();burst(r.left+r.width/2,r.top)}}
+ if(m=h.match(/^step-(.+)-(\d+)$/)){const j=job(m[1]),si=+m[2];if(!j)return;
+  const pins=$$('.pinG');const focusMode=!!$('#fcard');
+  const sync=()=>{const c=checks(j);const cur=(j.steps[si].tasks||[]).findIndex((_,t)=>!c[si+'-'+t]);(j.steps[si].tasks||[]).forEach((_,ti)=>{const on=!!c[si+'-'+ti];pins[ti]?.classList.toggle('hit',on);pins[ti]?.classList.toggle('cur',focusMode&&ti===cur);pins[ti]?.classList.toggle('dim',focusMode&&ti!==cur&&!on);document.querySelector(`[data-row="${ti}"]`)?.classList.toggle('on',on)});$('#nextbtn')?.classList.toggle('glow',stepDone(j,si))};
+  $$('.tick').forEach(b=>b.onchange=()=>{const c=checks(j);c[b.dataset.k]=b.checked;store.set('fb-'+j.id,c);sync();if(b.checked){const r=b.getBoundingClientRect();burst(r.left+15,r.top+15);if(stepDone(j,si))toast('Step '+(si+1)+' done ✓')}});
+  $$('[data-row]').forEach(r=>r.addEventListener('click',e=>{if(e.target.classList.contains('tick'))return;const p=pins[+r.dataset.row];if(p){p.classList.remove('focus');void p.getBBox();p.classList.add('focus');$('#stage').scrollIntoView({behavior:'smooth',block:'center'})}}));
+  sync();
+  const fd=$('#fdone');if(fd)fd.onclick=()=>{const c=checks(j);c[si+'-'+fd.dataset.ti]=true;store.set('fb-'+j.id,c);const r=fd.getBoundingClientRect();burst(r.left+r.width/2,r.top);if(stepDone(j,si))toast('Step '+(si+1)+' done ✓');dir='still';route();if(stepDone(j,si))setTimeout(()=>$('#nextbtn')?.scrollIntoView({behavior:'smooth',block:'center'}),150)};
+  const fp=$('#fprev');if(fp)fp.onclick=()=>{const c=checks(j);c[si+'-'+fp.dataset.ti]=false;store.set('fb-'+j.id,c);dir='still';route()};
+  $$('[data-list]').forEach(b=>b.onclick=()=>{store.set('fb-listmode',b.dataset.list==='1');dir='still';route()});
+  const w=j.steps[si].widget;
+  $$('[data-meg]').forEach(b=>b.onclick=()=>{$('#nd').style.transform=`rotate(${b.dataset.meg}deg)`;if(b.dataset.stop)setTimeout(()=>{location.hash=`stop-${j.id}-${si}-m`},1300);else toast('Matches the office note. Go to the next step.')});
+  $$('[data-dec]').forEach(b=>b.onclick=()=>{const o=w.options[+b.dataset.dec];if(o.tone==='stop'){location.hash=`stop-${j.id}-${si}-${b.dataset.dec}`;return}$('#dres').innerHTML=`<div class="ok"><b>✓ ${esc(o.result)}</b></div>`});
+  const tb=$('#tbtn');if(tb){let t=null,left=600;tb.onclick=()=>{if(t){clearInterval(t);t=null;left=600;$('#timer').textContent='10:00';tb.textContent='Start the 10-minute timer';return}tb.textContent='Stop / reset';t=setInterval(()=>{left--;$('#timer').textContent=`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;if(left<=0){clearInterval(t);t=null;try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}$('#timer').textContent='Done';tb.textContent='Start again';toast('10 minutes up: is it still under 500?')}},1000)}}
+  const mic=$('#illmic');if(mic){let v=2400;const it=setInterval(()=>{if(!document.body.contains(mic))return clearInterval(it);v=v>480?Math.round(v*.9):2400;mic.textContent=v},400)}
+ }
+}
+let lastIdx=0;
+async function route(){const h=location.hash.slice(1)||(store.get('fb-seen-help',false)?'today':'help');
+ if(h==='help')store.set('fb-seen-help',true);
+ if(h==='lock'){const t=TOK();setTOK('');history.replaceState(null,'',location.pathname);try{await api.rpc('fb_logout',{tok:t})}catch(e){}start();return}
+ let html,m;
+ if(m=h.match(/^stop-(.+)-(\d+)-(\w+)$/)){const j=job(m[1]);const w=j&&j.steps[+m[2]]&&j.steps[+m[2]].widget;const why=m[3]==='m'?(w&&w.high):(w&&w.options&&w.options[+m[3]]&&w.options[+m[3]].result);html=vStop(m[1],m[2],why)}
+ else if(m=h.match(/^step-(.+)-(\d+)$/))html=vStep(m[1],+m[2]);
+ else if(m=h.match(/^sec-(.+)-([a-z]+)$/))html=vSec(m[1],m[2]);
+ else if(m=h.match(/^job-(.+)$/))html=vJob(m[1]);
+ else if(m=h.match(/^unit-(.+)$/))html=vUnit(m[1]);
+ else html=({jobs:vJobs,units:vUnits,fixes:vFixes,help:vHelp}[h]||vToday)();
+ const keep=dir==='still'?window.scrollY:0;$('#app').innerHTML=html;window.scrollTo(0,keep);wire(h);dir='fwd'}
+function vLogin(msg){return `<div class="login"><div class="card"><div style="font:700 38px var(--cond);color:var(--navy)">Field Book</div><p class="muted" style="margin:4px 0 16px">Enter your code</p><div class="dots" aria-live="polite">${[0,1,2,3].map(i=>`<span data-d="${i}"></span>`).join('')}</div><div class="pad">${[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map(k=>k===''?'<span></span>':`<button type="button" data-key="${k}" aria-label="${k==='⌫'?'Delete':k}">${k}</button>`).join('')}</div><p id="lmsg" class="muted" style="min-height:22px;font-size:15px">${esc(msg||'')}</p></div></div>`}
+function wireLogin(){let code='';const dots=$$('[data-d]'),m=$('#lmsg');const show=()=>dots.forEach((d,i)=>d.classList.toggle('on',i<code.length));
+ const press=async k=>{if(k==='⌫'){code=code.slice(0,-1);show();return}if(code.length>=4)return;code+=k;show();
+  if(code.length===4){m.textContent='Checking…';const {data,error}=await api.rpc('fb_login',{code});
+   if(error){m.textContent=/many/i.test(error.message)?error.message:'Wrong code. Try again.';code='';show();const d=$('.dots');d.classList.add('shake');setTimeout(()=>d.classList.remove('shake'),500);return}
+   setTOK(data);$('.login .card').classList.add('ok');setTimeout(start,450)}};
+ $$('[data-key]').forEach(b=>b.onclick=()=>press(b.dataset.key));
+ document.onkeydown=e=>{if($('#lmsg')){if(/^[0-9]$/.test(e.key))press(e.key);else if(e.key==='Backspace')press('⌫')}}}
+async function start(){
+ if(!TOK()){$('#app').innerHTML=vLogin();wireLogin();return}
+ try{await load()}catch(e){setTOK('');$('#app').innerHTML=vLogin(/Signed out/.test(e.message)?'Please enter your code again.':'Could not load: '+e.message);wireLogin();return}
+ route()}
+window.addEventListener('hashchange',route);
+start();
+}
+</script>
+</body>
+</html>
