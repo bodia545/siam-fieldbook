@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#0D2238">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Field Book">
 <title>Field Book · Siam HVAC</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -228,6 +235,32 @@ details.more{margin-top:14px}details.more summary{cursor:pointer;font-weight:700
 .alldone b{font:700 26px var(--cond);color:var(--green)}
 .pinG.dim{opacity:.35}.pinG.cur circle.pb{stroke-width:4}
 .linkbtn{display:block;text-align:center;margin:16px 0 4px;font-size:16px;background:none;border:0;color:var(--teal);font-weight:700;cursor:pointer;width:100%}
+/* no signal + install + videos */
+#netbar>div{padding:10px 20px;font-size:15px;line-height:1.35}
+#netbar .off{background:#22364C;color:#fff}#netbar .off b{color:var(--amber)}
+#netbar .wait{background:#FFF4D6;color:#5a4300;border-bottom:1px solid #F2D27A}
+.offl{display:flex;gap:9px;align-items:flex-start;font-size:14px;line-height:1.35;color:var(--muted);margin:12px 4px 0}
+.offl i{flex:none;width:10px;height:10px;border-radius:50%;background:var(--green);margin-top:5px}
+.offl.wip i{background:var(--amber);animation:glow 1.6s ease-in-out infinite}
+.offsum{background:var(--paper);border:1px solid var(--steel);border-radius:12px;padding:10px 12px;margin:12px 0 0;font-size:15px}
+.install{border:2px solid var(--teal);margin-bottom:14px}
+.install ol,.inst{margin:6px 0 0;padding-left:22px}.install li{margin:6px 0}
+.shareic{display:inline-block;vertical-align:-3px;width:18px;height:18px}
+.vids{border:2px solid var(--navy)}
+.vids .lbl{font:700 13px var(--cond);letter-spacing:.08em;color:var(--red)}
+.vid{border-top:1px solid var(--steel);margin-top:12px;padding-top:12px}
+.vid summary{list-style:none;display:flex;gap:12px;align-items:center;cursor:pointer}
+.vid summary::-webkit-details-marker{display:none}
+.vid .th{position:relative;flex:none;width:112px;height:63px;border-radius:10px;overflow:hidden;background:var(--navy2)}
+.vid .th img{width:100%;height:100%;object-fit:cover;display:block}
+.vid .play{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:22px;text-shadow:0 1px 6px #000c}
+.vid .len{position:absolute;right:4px;bottom:4px;background:#000c;color:#fff;font-size:11px;font-weight:600;padding:0 5px;border-radius:4px}
+.vid .vt b{display:block;font-size:16px;line-height:1.25}
+.vid .vt small{display:block;color:var(--muted);font-size:13px;line-height:1.3;margin-top:3px}
+.vid[open] summary .vt b{color:var(--teal)}
+.vhow{padding:10px 0 2px}.vhow p{margin:0 0 6px}.vhow ol{margin:0 0 8px;padding-left:22px}.vhow li{margin:5px 0}
+.vidlink{border-color:var(--red)!important;color:var(--red)!important}
+.photos button.nophoto{background:repeating-linear-gradient(45deg,var(--steel),var(--steel) 8px,#e9eef2 8px,#e9eef2 16px)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -252,7 +285,77 @@ const TAGM={COPY:'Take a photo or write it down',EXTRACT:'Remove or disconnect s
 let DB={models:[],jobs:[],trouble:[],reports:[],uploads:[]},dir='fwd',lastH='';
 function toast(t){const el=document.createElement('div');el.className='toast';el.textContent=t;$('#toastbox').append(el);setTimeout(()=>el.remove(),2400)}
 function burst(x,y){const cs=['#10A39A','#F2A900','#1E8A4C','#7FE0D6'];for(let i=0;i<14;i++){const b=document.createElement('i');b.className='burst';const a=Math.random()*Math.PI*2,d=40+Math.random()*60;b.style.cssText=`left:${x}px;top:${y}px;background:${cs[i%4]};--x:${Math.cos(a)*d}px;--y:${Math.sin(a)*d}px;--r:${Math.random()*360}deg`;document.body.append(b);setTimeout(()=>b.remove(),1000)}}
-async function load(){const {data,error}=await api.rpc('fb_data',{tok:TOK()});if(error)throw error;DB={models:data.models||[],jobs:data.jobs||[],trouble:data.trouble||[],reports:data.reports||[],uploads:data.uploads||[]}}
+/* ---------- no signal: saved copy of the data, photos and unsent saves (IndexedDB on this phone) ---------- */
+const IDB=(()=>{let dbp=null;const open=()=>dbp||(dbp=new Promise((res,rej)=>{if(!window.indexedDB)return rej(new Error('no IndexedDB'));const r=indexedDB.open('fieldbook',1);r.onupgradeneeded=()=>{const d=r.result;['kv','photos'].forEach(s=>{if(!d.objectStoreNames.contains(s))d.createObjectStore(s)});if(!d.objectStoreNames.contains('outbox'))d.createObjectStore('outbox',{keyPath:'id',autoIncrement:true})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}));
+ const run=(s,mode,fn)=>open().then(d=>new Promise((res,rej)=>{const t=d.transaction(s,mode),q=fn(t.objectStore(s));t.oncomplete=()=>res(q&&q.result);t.onerror=t.onabort=()=>rej(t.error)}));
+ return{get:(s,k)=>run(s,'readonly',o=>o.get(k)).catch(()=>undefined),put:(s,k,v)=>run(s,'readwrite',o=>k==null?o.put(v):o.put(v,k)).then(()=>true,()=>false),del:(s,k)=>run(s,'readwrite',o=>o.delete(k)).catch(()=>undefined),all:s=>run(s,'readonly',o=>o.getAll()).then(x=>x||[],()=>[]),keys:s=>run(s,'readonly',o=>o.getAllKeys()).then(x=>x||[],()=>[])}})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const within=(p,ms)=>Promise.race([Promise.resolve().then(()=>p),sleep(ms).then(()=>{throw new Error('timeout: no answer')})]);
+const isAuth=e=>/Signed out/i.test((e&&e.message)||'');
+const isNet=e=>!navigator.onLine||/fetch|network|timeout|load failed|offline|connection|abort|not defined|createClient/i.test((e&&e.message)||String(e||''));
+const QMSG='No signal: saved on this phone. It sends by itself later.';
+const NET={at:0,from:'',busy:false,last:0,saved:new Set(),out:0,pf:false,fl:false,pending:false};
+function setDB(data){DB={models:data.models||[],jobs:data.jobs||[],trouble:data.trouble||[],reports:data.reports||[],uploads:data.uploads||[]}}
+function saveCopy(){return IDB.put('kv','data',{at:NET.at||Date.now(),data:DB})}
+async function load(){let r;try{r=await within(api.rpc('fb_data',{tok:TOK()}),12000)}catch(e){r={error:e}}
+ if(!r.error){setDB(r.data);NET.at=Date.now();NET.from='live';await saveCopy();return true}
+ if(isAuth(r.error))throw r.error;
+ const c=await IDB.get('kv','data');if(!c)throw r.error;setDB(c.data);NET.at=c.at;NET.from='saved';return false}
+const addDays=(d,n)=>{const t=new Date(d+'T12:00:00');t.setDate(t.getDate()+n);return t.toLocaleDateString('en-CA')};
+/* photos kept on the phone: every job from 2 days ago onward */
+function keepIds(){const from=addDays(today(),-2),s=new Set();DB.jobs.filter(j=>j.job_date>=from).forEach(j=>(j.dbphotos||[]).forEach(p=>s.add(p.id)));return s}
+async function countOut(){NET.out=(await IDB.keys('outbox')).length;updNet()}
+async function prefetch(){if(NET.pf||!navigator.onLine||!TOK())return;NET.pf=true;
+ try{const keep=keepIds(),have=await IDB.keys('photos');
+  for(const id of have)if(!keep.has(id))await IDB.del('photos',id);
+  NET.saved=new Set(have.filter(id=>keep.has(id)));updNet();
+  const need=[...keep].filter(id=>!NET.saved.has(id));
+  const work=async()=>{while(need.length&&navigator.onLine){const id=need.shift();try{const {data,error}=await within(api.rpc('fb_photo',{tok:TOK(),pid:id}),45000);if(!error&&data&&await IDB.put('photos',id,data))NET.saved.add(id)}catch(e){}updNet()}};
+  await Promise.all([work(),work(),work()])}
+ finally{NET.pf=false;updNet()}}
+/* a save that cannot reach the office waits in the outbox */
+async function send(fn,args){let r;try{r=await within(api.rpc(fn,args),20000)}catch(e){r={error:e}}
+ if(!r.error||!isNet(r.error))return r;
+ const ok=await IDB.put('outbox',null,{fn,args,at:Date.now()});await countOut();return ok?{queued:true}:r}
+async function flush(){if(!navigator.onLine||NET.fl||!TOK())return;NET.fl=true;let sent=0;
+ try{for(const it of await IDB.all('outbox')){let r;try{r=await within(api.rpc(it.fn,Object.assign({},it.args,{tok:TOK()})),30000)}catch(e){r={error:e}}
+   if(r.error&&(isNet(r.error)||isAuth(r.error)))break;
+   await IDB.del('outbox',it.id);if(r.error)toast('A saved item was refused: '+r.error.message);else sent++}}
+ finally{NET.fl=false;await countOut()}
+ if(sent)toast(`Sent ${sent} thing${sent>1?'s':''} you saved with no signal ✓`)}
+async function refresh(force){if(!TOK()||NET.busy)return;if(!force&&Date.now()-NET.last<30000)return;NET.busy=true;NET.last=Date.now();
+ try{await flush();const before=JSON.stringify(DB),old=new Set(DB.jobs.map(j=>j.id));const live=await load();
+  if(live){const fresh=DB.jobs.filter(j=>!old.has(j.id)&&j.job_date>=today());const changed=JSON.stringify(DB)!==before;
+   if(fresh.length)toast('New job: '+fresh[0].title);else if(changed&&old.size)toast('Job info updated ✓');else if(force)toast('Up to date ✓');
+   if(changed)rerender();prefetch()}
+  else if(force)toast('No signal. Using the copy saved on this phone.')}
+ catch(e){if(isAuth(e)){setTOK('');$('#app').innerHTML=vLogin('Please enter your code again.');wireLogin()}}
+ finally{NET.busy=false;updNet()}}
+function rerender(){const a=document.activeElement;if((a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))||$('.lb,.dlg')){NET.pending=true;return}if(!$('#lmsg')){dir='still';route()}}
+const hhmm=t=>{const d=new Date(t),same=d.toLocaleDateString('en-CA')===new Date().toLocaleDateString('en-CA');return (same?'':d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+', ')+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})};
+function netHtml(){const out=NET.out?` · ${NET.out} save${NET.out>1?'s':''} waiting to send`:'';
+ if(!navigator.onLine||NET.from==='saved')return `<div class="off"><b>No signal</b> · showing the copy saved on this phone${NET.at?' ('+hhmm(NET.at)+')':''}${out}</div>`;
+ if(NET.out)return `<div class="wait">Sending ${NET.out} save${NET.out>1?'s':''} you made with no signal…</div>`;return''}
+function offlBox(j){if(!j)return'';const keep=keepIds(),ids=(j.dbphotos||[]).map(p=>p.id).filter(id=>keep.has(id)),n=ids.filter(id=>NET.saved.has(id)).length,done=n>=ids.length;
+ return `<div class="offl ${done?'':'wip'}" data-offl="${esc(j.id)}"><i></i><span>${done?'<b>Ready for no signal.</b>':'<b>Saving for no signal…</b>'} Steps, notes${ids.length?` and ${n} of ${ids.length} photos`:''} are on this phone.</span></div>`}
+function offSummary(){const keep=keepIds();return `<b>On this phone:</b> ${DB.jobs.length} job${DB.jobs.length===1?'':'s'}, ${[...keep].filter(id=>NET.saved.has(id)).length} of ${keep.size} photos for the coming jobs.${NET.at?`<br><b>Last update:</b> ${hhmm(NET.at)}`:''}${NET.out?`<br><b>Waiting to send:</b> ${NET.out}`:''}`}
+function updNet(){const b=$('#netbar');if(b)b.innerHTML=netHtml();$$('[data-offl]').forEach(el=>{const j=job(el.dataset.offl);if(j)el.outerHTML=offlBox(j)});const s=$('#offsum');if(s)s.innerHTML=offSummary()}
+function askPersist(){try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist().catch(()=>{})}catch(e){}}
+
+/* ---------- install on the Home Screen ---------- */
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isApp=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
+let BIP=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();BIP=e;const b=$('#instbtn');if(b)b.hidden=false});
+const SHARE='<svg class="shareic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5M5 12v8h14v-8"/></svg>';
+function installCard(force){if(isApp()||(!force&&store.get('fb-inst-hide',false)))return'';
+ return `<div class="card install"><h2>Put Field Book on your Home Screen</h2><p style="margin:4px 0 0">It then opens like an app and <b>works with no signal</b>.</p>${isIOS?`<ol><li>Open this page in <b>Safari</b>.</li><li>Tap <b>•••</b> at the bottom, then <b>Share</b> ${SHARE}. If you already see the Share button, tap it.</li><li>Scroll down. Tap <b>Add to Home Screen</b>.</li><li>Leave <b>Open as Web App</b> on. Tap <b>Add</b>.</li><li>Open <b>Field Book</b> from the new icon and type your code one time.</li></ol>`:`<button class="btn" id="instbtn" ${BIP?'':'hidden'}>Install Field Book</button><p class="muted" style="font-size:14px;margin:8px 0 0">On iPhone: Safari → ••• → Share → Add to Home Screen.</p>`}${force?'':'<button class="linkbtn" data-insthide>Hide this</button>'}</div>`}
+
+/* ---------- YouTube videos to watch before the job ---------- */
+const ytId=u=>{const m=String(u||'').match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/);return m?m[1]:''};
+const ytLink=v=>{const id=ytId(v.url);return id?`https://www.youtube.com/watch?v=${id}${v.start?'&t='+(+v.start)+'s':''}`:v.url};
+function videosCard(j,full){const v=j.videos||[];if(!v.length)return'';
+ return `<div class="card vids"><div class="lbl">▶ WATCH FIRST · ${v.length} VIDEO${v.length>1?'S':''}</div><h2>Learn it before you go</h2><p class="muted" style="margin:6px 0 0;font-size:15px">Watch them the night before, on Wi-Fi. Tap a video to see how to do it in plain steps. Videos need signal; the rest of the app works without it.</p>${v.map((x,i)=>{const id=ytId(x.url);return `<details class="vid"${full&&i===0?' open':''}><summary><span class="th">${id?`<img loading="lazy" alt="" onerror="this.remove()" src="https://i.ytimg.com/vi/${id}/mqdefault.jpg">`:''}<span class="play">▶</span>${x.length?`<span class="len">${esc(x.length)}</span>`:''}</span><span class="vt"><b>${i+1}. ${esc(x.title)}</b><small>${esc([x.channel,x.why].filter(Boolean).join(' · '))}</small></span></summary><div class="vhow">${x.watch?`<p><b>Watch:</b> ${esc(x.watch)}</p>`:''}${(x.how||[]).length?`<p><b>How to do it:</b></p><ol>${x.how.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:''}${x.note?`<p class="muted" style="font-size:14px">${esc(x.note)}</p>`:''}<a class="btn small" href="${esc(ytLink(x))}" target="_blank" rel="noopener">▶ Play on YouTube</a></div></details>`}).join('')}</div>`}
+
 const model=id=>DB.models.find(m=>m.id===id);
 const job=id=>DB.jobs.find(j=>j.id===id);
 const checks=j=>store.get('fb-'+j.id,{});
@@ -329,7 +432,7 @@ function illus(key,n){const I=ILL[key];if(!I)return'';const a=I.a.slice(0,n);
 /* ---------- shells ---------- */
 const ICON={today:'<path d="M4 6h16v14H4z M8 3v5 M16 3v5 M4 10h16"/>',jobs:'<path d="M4 7h16v12H4z M9 7V5h6v2"/>',units:'<path d="M3 5h18v14H3z M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0-8 0"/>',fixes:'<path d="M14 6l4 4-9 9H5v-4z M13 7l4 4"/>',help:'<path d="M12 21a9 9 0 1 1 0-18a9 9 0 0 1 0 18z M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14 M12 17h.01"/>'};
 function nav(on){return `<nav class="nav">${[['today','Today'],['jobs','Jobs'],['units','Units'],['fixes','Fixes'],['help','Help']].map(([h,l])=>`<a href="#${h}" class="${on===h?'on':''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[h]}</svg>${l}</a>`).join('')}</nav>`}
-function page(o){return `<div class="view ${dir==='back'?'back':dir==='still'?'still':''}"><header class="hd ${o.red?'red':''}">${o.back?`<a class="back" href="${o.back}" data-back>← ${esc(o.backL||'Back')}</a>`:''}${o.help!==false?'<a class="help" href="#help" aria-label="How to use">?</a>':''}<div class="eyebrow">${o.eyebrow||''}</div><h1>${o.title}</h1>${o.bar!=null?`<div class="bar"><i id="hbar" data-w="${o.bar}"></i></div><div class="barlbl">${o.barL||''}</div>`:''}</header><main class="st">${o.body}</main></div>${nav(o.nav)}`}
+function page(o){return `<div class="view ${dir==='back'?'back':dir==='still'?'still':''}"><header class="hd ${o.red?'red':''}">${o.back?`<a class="back" href="${o.back}" data-back>← ${esc(o.backL||'Back')}</a>`:''}${o.help!==false?'<a class="help" href="#help" aria-label="How to use">?</a>':''}<div class="eyebrow">${o.eyebrow||''}</div><h1>${o.title}</h1>${o.bar!=null?`<div class="bar"><i id="hbar" data-w="${o.bar}"></i></div><div class="barlbl">${o.barL||''}</div>`:''}</header><div id="netbar">${netHtml()}</div><main class="st">${o.body}</main></div>${nav(o.nav)}`}
 const st=(html,i)=>html.replace(/^<(\w+)/,`<$1 style="--i:${i}"`);
 const stag=arr=>arr.filter(Boolean).map((h,i)=>st(h,i)).join('');
 
@@ -358,15 +461,19 @@ function tilesHtml(j){const m=model(j.model_id);const T=[
  return `<div class="tiles">${T.map(([k,b,sm,href,c])=>`<a class="tile" href="${esc(href)}"><span class="ic" style="background:${c}">${ic(k)}</span><b>${esc(b)}</b><small>${esc(sm)}</small></a>`).join('')}</div>`}
 function vToday(){const t=today();const up=DB.jobs.filter(j=>j.job_date>=t&&j.status!=='Done').sort((a,b)=>a.job_date.localeCompare(b.job_date));const n=up[0];
  const dateL=new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric',timeZone:'America/Los_Angeles'});
- if(!n)return page({nav:'today',eyebrow:dateL,title:greet()+', Bohdan',body:`<div class="card empty"><h2>No jobs on the board</h2><p>New jobs come in from ServiceTitan every morning at 3:37 AM.</p></div>`});
+ if(!n)return page({nav:'today',eyebrow:dateL,title:greet()+', Bohdan',body:installCard()+`<div class="card empty"><h2>No jobs on the board</h2><p>New jobs come in from ServiceTitan every morning at 3:37 AM.</p></div>`});
  const st=stages(n);
  return page({nav:'today',eyebrow:dateL,title:greet()+', Bohdan',body:stag([
-  jobCard(n,true),nextHtml(n,st),
+  installCard(),
+  jobCard(n,true),
+  (n.videos||[]).length?`<a class="btn ghost vidlink" href="#sec-${esc(n.id)}-videos">▶ Watch ${n.videos.length} video${n.videos.length>1?'s':''} before you go</a>`:'',
+  nextHtml(n,st),offlBox(n),
   `<a class="btn ghost" href="#job-${esc(n.id)}">See the whole job</a>`,
   up.length>1?`<div class="card"><h2>Coming up</h2>${up.slice(1).map(j=>jobCard(j)).join('<div style="height:10px"></div>')}</div>`:''])})}
 function vJob(id){const j=job(id);if(!j)return vMissing();const st=stages(j);const dn=st.filter(x=>x.done).length;const m=model(j.model_id);
  return page({nav:'jobs',back:'#today',backL:'Today',eyebrow:`Job ${esc(j.job_no)} · ${esc(j.window_text||'')}`,title:esc(j.title),bar:dn/st.length*100,barL:`${dn} of ${st.length} parts of the day done`,body:stag([
-  nextHtml(j,st),
+  videosCard(j),
+  nextHtml(j,st),offlBox(j),
   `<h2 style="margin:30px 2px 0;padding-top:4px">Your day on this job</h2>`,roadHtml(j,st),
   `<h2 style="margin:30px 2px 0;padding-top:4px">Need something?</h2>`,tilesHtml(j),
   m?`<a class="btn ghost" href="#unit-${esc(m.id)}">The unit and its manuals</a>`:'',
@@ -379,22 +486,23 @@ function vSec(id,name){const j=job(id);if(!j)return vMissing();const pack=j.pack
  if(name==='photos')return secPage(j,'Site photos','From past visits',stag([photosCard(j)||'<div class="card empty">No photos yet.</div>']));
  if(name==='old')return secPage(j,'The old unit','What is there now',stag([equipCard(j)||'<div class="card empty">No equipment saved.</div>',j.model_id?`<a class="btn ghost" href="#unit-${esc(j.model_id)}">Manuals and known problems</a>`:'']));
  if(name==='notes')return secPage(j,'Office notes','What the office said',stag([j.plain_summary?`<div class="card plain"><h2>In plain words</h2><p style="margin:0;font-size:18px">${esc(j.plain_summary)}</p></div>`:'',j.office_notes?`<div class="card"><h2>Exactly what the office wrote</h2><p style="margin:0">${esc(j.office_notes)}</p></div>`:'',j.pdf_url?`<a class="btn ghost" href="${esc(j.pdf_url)}" target="_blank" rel="noopener">Open the PDF guide</a>`:'']));
+ if(name==='videos')return secPage(j,'Watch first','Videos for this job',stag([videosCard(j,true)||'<div class="card empty">No videos for this job yet.</div>',`<a class="btn ghost" href="#job-${esc(j.id)}">Back to the job</a>`]));
  if(name==='snap')return secPage(j,'Snap the new nameplate','Part 4 of the day',stag([snapCard(j),`<a class="btn ghost" href="#sec-${esc(j.id)}-finish">Next: finish the job →</a>`]));
  if(name==='finish')return secPage(j,'Finish the job','Part 5 of the day',stag([`<form class="card" id="resform"><h2>Write down what you found</h2><p class="muted" style="margin:0">Fill what you have. Empty is OK.</p>${[['megger','Megger reading'],['oil','Oil / acid test'],['recovered','Pounds of gas recovered'],['new_model','New model'],['new_serial','New serial'],['vacuum','Vacuum result (microns)'],['charge','Extra gas added']].map(([k,l])=>`<label class="f">${l}<input name="${k}" value="${esc(r[k]||'')}"></label>`).join('')}<label class="f">Status<select name="status">${['Scheduled','In progress','Done'].map(x=>`<option ${j.status===x?'selected':''}>${x}</option>`).join('')}</select></label><label class="f">Notes<textarea name="notes" rows="3">${esc(r.notes||'')}</textarea></label><button class="btn">Save</button></form>`,
   j.appt_id?`<div class="card"><h2>Last: complete it in ServiceTitan</h2><p style="margin:0">Open the job, check the forms Claude saved, then tap <b>Complete</b> yourself.</p><a class="btn" href="https://go.servicetitan.com/m/job-appointment/${esc(j.appt_id)}/details" target="_blank" rel="noopener">Open the job in ServiceTitan</a></div>`:'']));
  return vMissing()}
-function mapCard(j){if(!j.address)return'';const q=encodeURIComponent(j.address);return `<div class="card"><h2>How to get there</h2>${j.unit_location?`<p style="margin:0"><b>Where the unit is:</b> ${esc(j.unit_location)}</p>`:''}<div class="map"><iframe loading="lazy" referrerpolicy="no-referrer" title="Map" src="https://maps.google.com/maps?q=${q}&z=17&output=embed"></iframe></div><p class="muted" style="font-size:14px;margin:8px 0 0">${esc(j.address)}</p><a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=${q}" target="_blank" rel="noopener">Start directions (Google Maps)</a></div>`}
+function mapCard(j){if(!j.address)return'';const q=encodeURIComponent(j.address);return `<div class="card"><h2>How to get there</h2>${j.unit_location?`<p style="margin:0"><b>Where the unit is:</b> ${esc(j.unit_location)}</p>`:''}${navigator.onLine?`<div class="map"><iframe loading="lazy" referrerpolicy="no-referrer" title="Map" src="https://maps.google.com/maps?q=${q}&z=17&output=embed"></iframe></div>`:'<div class="note">No signal: the map needs signal. The address is below. The button opens Google Maps.</div>'}<p class="muted" style="font-size:14px;margin:8px 0 0">${esc(j.address)}</p><a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=${q}" target="_blank" rel="noopener">Start directions (Google Maps)</a></div>`}
 const telFmt=p=>{const d=String(p||'').replace(/\D/g,'').replace(/^1(?=\d{10}$)/,'');return d.length===10?`(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`:p};
 function contactsCard(j){const c=j.contacts||[];if(!c.length&&!j.customer_phone)return'';const list=c.length?c:[{name:j.customer,role:'Customer',phone:j.customer_phone}];
  return `<div class="card"><h2>Who to call</h2>${list.map(x=>`<div class="steprow" style="cursor:default"><span class="n" style="background:var(--teal)">📞</span><span class="t">${esc(x.name)}<small>${esc(x.role||'')} · ${esc(telFmt(x.phone))}${x.email?' · '+esc(x.email):''}</small></span><a class="btn small" style="width:auto;min-height:44px;margin:0;padding:0 16px" href="tel:${esc(x.phone)}">Call</a></div>`).join('')}</div>`}
 function equipCard(j){const e=j.equipment||[];if(!e.length)return'';return `<div class="card"><h2>Old units at this house</h2>${e.map(x=>`<div class="plate" style="margin-top:10px;padding:16px 18px"><div class="brandline">${esc(x.name)}</div><dl style="margin-top:6px"><dt>Model</dt><dd><b>${esc(x.model)}</b></dd><dt>Serial</dt><dd><b>${esc(x.serial)}</b></dd>${x.installed?`<dt>Installed</dt><dd>${esc(x.installed)}</dd>`:''}</dl></div>`).join('')}</div>`}
 function stCard(j){if(!j.appt_id)return'';const u=`https://go.servicetitan.com/m/job-appointment/${esc(j.appt_id)}/details`;return `<div class="card"><h2>ServiceTitan</h2><p class="muted" style="margin:0">Each button opens this job in ServiceTitan. Then tap <b>JOB ACTIONS</b> and the same word.</p><div class="st3"><a class="btn" href="${u}" target="_blank" rel="noopener">Dispatch</a><a class="btn" href="${u}" target="_blank" rel="noopener">Arrive</a></div><a class="btn ghost" href="${u}" target="_blank" rel="noopener">Open the job</a></div>`}
 const PH=new Map();const phList=j=>(j.dbphotos&&j.dbphotos.length)?j.dbphotos:(j.photos||[]).map(p=>Object.assign({src:p.src},p));
-async function phSrc(p){if(p.src)return p.src;if(PH.has(p.id))return PH.get(p.id);const pr=api.rpc('fb_photo',{tok:TOK(),pid:p.id}).then(({data,error})=>{if(error)throw error;return data});PH.set(p.id,pr);try{const d=await pr;PH.set(p.id,d);return d}catch(e){PH.delete(p.id);throw e}}
-function loadImgs(j){const ph=phList(j);const q=$$('img[data-pi]').filter(im=>!im.src);let k=0;const next=()=>{const im=q[k++];if(!im)return;phSrc(ph[+im.dataset.pi]).then(d=>{im.src=d}).catch(()=>{im.alt='Could not load'}).finally(next)};for(let n=0;n<4;n++)next()}
+async function phSrc(p){if(p.src)return p.src;if(PH.has(p.id))return PH.get(p.id);const pr=(async()=>{const c=await IDB.get('photos',p.id);if(c)return c;const {data,error}=await within(api.rpc('fb_photo',{tok:TOK(),pid:p.id}),30000);if(error)throw error;if(keepIds().has(p.id)&&await IDB.put('photos',p.id,data)){NET.saved.add(p.id);updNet()}return data})();PH.set(p.id,pr);try{const d=await pr;PH.set(p.id,d);return d}catch(e){PH.delete(p.id);throw e}}
+function loadImgs(j){const ph=phList(j);const q=$$('img[data-pi]').filter(im=>!im.src);let k=0;const next=()=>{const im=q[k++];if(!im)return;phSrc(ph[+im.dataset.pi]).then(d=>{im.src=d}).catch(()=>{im.alt=navigator.onLine?'Could not load':'Needs signal';im.closest('button')?.classList.add('nophoto')}).finally(next)};for(let n=0;n<4;n++)next()}
 function photosCard(j,limit){const ph=phList(j);if(!ph.length)return'';const groups={};ph.forEach((p,i)=>{(groups[p.visit]=groups[p.visit]||[]).push([p,i])});
  return `<div class="card"><h2>Site photos</h2><p class="muted" style="margin:0">${ph.length} photos from ${Object.keys(groups).length} past visits. Tap one to see it big.</p>${Object.values(groups).map(g=>{const p=g[0][0];return `<div class="visit">${esc(p.type)} <small>· ${esc(p.date)} · ${esc(p.by)}</small></div><div class="photos">${g.slice(0,limit||99).map(([x,i])=>`<button data-ph="${i}" aria-label="Photo ${i+1}"><img data-pi="${i}" alt=""></button>`).join('')}</div>`}).join('')}</div>`}
-const UPS={new:['Sent. Claude will read it','warn'],read:['Read by Claude','go'],filled:['Saved in ServiceTitan (not completed)','go'],error:['Could not read: send a closer photo','stop']};
+const UPS={queued:['Saved on this phone. It sends by itself when you have signal','warn'],new:['Sent. Claude will read it','warn'],read:['Read by Claude','go'],filled:['Saved in ServiceTitan (not completed)','go'],error:['Could not read: send a closer photo','stop']};
 function uploadsHtml(j){const u=(DB.uploads||[]).filter(x=>x.job_id===j.id);if(!u.length)return'';return u.map(x=>{const st=UPS[x.status]||[x.status,'warn'];const r=x.result||{};return `<div class="note ${st[1]}"><b>${esc(st[0])}</b> · ${new Date(x.created_at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}${r.model||r.serial?`<br>Model <b>${esc(r.model||'?')}</b> · Serial <b>${esc(r.serial||'?')}</b>`:''}${r.message?`<br>${esc(r.message)}`:''}</div>`}).join('')}
 function snapCard(j){const r=j.results||{};return `<div class="card" id="snap"><h2>Snap the new nameplate</h2><p class="muted" style="margin:0">Take a clear photo of the sticker. It is sent to Claude, who reads the model and serial and fills the ServiceTitan form with <b>Save only</b>. You tap Complete yourself.</p><label class="btn" style="cursor:pointer">📷 Take nameplate photo<input id="snapin" type="file" accept="image/*" capture="environment" hidden></label><img id="snapimg" class="snapprev" alt="Nameplate photo" hidden><div id="snapstat">${uploadsHtml(j)}</div>
  <details class="more"><summary>Or type it yourself</summary><label class="f">New model<input id="snapmodel" value="${esc(r.new_model||'')}" autocapitalize="characters"></label><label class="f">New serial<input id="snapserial" value="${esc(r.new_serial||'')}" autocapitalize="characters"></label><button class="btn" id="snapsave">Save model and serial</button></details></div>`}
@@ -443,6 +551,9 @@ const jobList=q=>DB.jobs.filter(j=>!q||JSON.stringify(j).toLowerCase().includes(
 function vFixes(){return page({nav:'fixes',eyebrow:'Saved so the same problem is quicker next time',title:'Fixes',body:`<details class="card more"><summary>+ Log a fix</summary><form id="fixform"><label class="f">Unit<select name="model_id"><option value="">—</option>${DB.models.map(m=>`<option value="${esc(m.id)}">${esc(m.brand+' '+m.model)}</option>`).join('')}</select></label><label class="f">Problem<input name="problem" required></label><label class="f">What you found<textarea name="findings" rows="2"></textarea></label><label class="f">What fixed it<textarea name="fix" rows="2"></textarea></label><button class="btn">Save fix</button></form></details>
  ${DB.trouble.map(f=>{const m=model(f.model_id);return `<div class="card"><div class="muted" style="font-size:14px">${new Date(f.created_at).toLocaleDateString()}${m?' · '+esc(m.brand+' '+m.model):''}</div><h2 style="font-size:22px;margin-top:4px">${esc(f.problem)}</h2>${f.findings?`<p><b>Found:</b> ${esc(f.findings)}</p>`:''}${f.fix?`<p><b>Fix:</b> ${esc(f.fix)}</p>`:''}${(f.sources||[]).map(s=>`<a href="${esc(s.url||s)}" target="_blank" rel="noopener">${esc(s.title||'Source')}</a>`).join(' · ')}</div>`}).join('')||'<p class="empty">No fixes logged yet.</p>'}`})}
 function vHelp(){return page({nav:'help',help:false,eyebrow:'How to use Field Book',title:'Never done this before? Read this once.',body:stag([
+  installCard(true)||`<div class="ok"><b>✓ Field Book is on your Home Screen</b><p>It opens like an app and works with no signal.</p></div>`,
+  `<div class="card"><h2>No signal? It still works.</h2><p style="margin:0">Every time you open Field Book with signal, it saves your jobs, steps, notes and site photos on this phone. In a basement with no signal, it all still opens.</p><p style="margin:8px 0 0">If you save something with no signal (results, nameplate photo, a fix), it waits on the phone and sends by itself when signal comes back.</p><div class="offsum" id="offsum">${offSummary()}</div><button class="btn ghost" data-sync>Update now</button></div>`,
+  `<div class="card"><h2>Getting tomorrow's job</h2><p style="margin:0">New jobs are added every evening and at 3:37 AM. Open Field Book once with signal (home Wi-Fi is best) the night before or in the morning. It updates by itself as soon as it opens, and again whenever signal comes back.</p></div>`,
   `<div class="card"><p style="margin:0">Every job is split into small steps. Each step shows a drawing of what you will really see, with numbered yellow pins. The numbers in the drawing match the numbered instructions underneath. Arrows point at the exact part to touch.</p></div>`,
   `<div class="card"><div style="display:flex;gap:12px;align-items:center"><span class="pin">1</span><b>Yellow pin = do instruction 1 HERE</b></div></div>`,
   `<div class="card"><h2>What the colored labels mean</h2>${Object.keys(TAGN).map(k=>`<div style="display:flex;gap:12px;align-items:center;padding:7px 0"><span class="chip c-${k}" style="margin:0;min-width:78px;text-align:center">${TAGN[k]}</span><span>${TAGM[k]}</span></div>`).join('')}</div>`,
@@ -459,19 +570,22 @@ function wire(h){
  $$('[data-call]').forEach(b=>b.onclick=()=>call(b.dataset.call));
  $$('[data-setc]').forEach(b=>b.onclick=()=>{const c=store.get('fb-contacts',{});delete c[b.dataset.setc];store.set('fb-contacts',c);call(b.dataset.setc)});
  $$('[data-back]').forEach(a=>a.addEventListener('click',()=>dir='back'));
+ $$('[data-sync]').forEach(b=>b.onclick=()=>refresh(true));
+ $$('[data-insthide]').forEach(b=>b.onclick=()=>{store.set('fb-inst-hide',true);dir='still';route()});
+ const ib=$('#instbtn');if(ib)ib.onclick=async()=>{if(!BIP)return;BIP.prompt();try{await BIP.userChoice}catch(e){}BIP=null;dir='still';route()};
  const q=$('#q');if(q)q.oninput=()=>{const v=q.value.trim().toLowerCase();$('#list').innerHTML=h==='units'?unitList(v):jobList(v);tiltAll()};
- const ff=$('#fixform');if(ff)ff.onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(ff));Object.keys(d).forEach(k=>{if(!d[k])d[k]=null});const {data,error}=await api.rpc('fb_add_fix',{tok:TOK(),fix:d});if(error)return toast('Not saved: '+error.message);DB.trouble.unshift(data);toast('Fix saved');route()};
+ const ff=$('#fixform');if(ff)ff.onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(ff));Object.keys(d).forEach(k=>{if(!d[k])d[k]=null});const r=await send('fb_add_fix',{tok:TOK(),fix:d});if(r.error)return toast('Not saved: '+r.error.message);DB.trouble.unshift(r.queued?Object.assign({created_at:new Date().toISOString()},d):r.data);saveCopy();toast(r.queued?QMSG:'Fix saved');route()};
  let m;
  const jm=h.match(/^job-(.+)$/)||h.match(/^step-(.+)-\d+$/)||h.match(/^sec-(.+)-[a-z]+$/);
  const jj=jm?job(jm[1]):(h==='today'||!h?DB.jobs.filter(x=>x.job_date>=today()&&x.status!=='Done').sort((a,b)=>a.job_date.localeCompare(b.job_date))[0]:null);
  if(jj){$$('[data-ph]').forEach(b=>b.onclick=()=>lightbox(jj,+b.dataset.ph));loadImgs(jj);
   const si=$('#snapin');if(si){si.onchange=async()=>{const file=si.files[0];if(!file)return;const im=$('#snapimg');im.src=URL.createObjectURL(file);im.hidden=false;$('#snapstat').innerHTML='<div class="note">Sending the photo…</div>';
-    try{const img=await shrink(file);const {data,error}=await api.rpc('fb_upload',{tok:TOK(),job:jj.id,img,kind:'nameplate',note:null});if(error)throw error;DB.uploads=[data,...(DB.uploads||[])];$('#snapstat').innerHTML=uploadsHtml(jj);toast('Photo sent ✓');const r=im.getBoundingClientRect();burst(r.left+r.width/2,r.top+40)}catch(e){$('#snapstat').innerHTML=`<div class="note stop">Not sent: ${esc(e.message)}. Check signal and try again.</div>`}};
-   $('#snapsave').onclick=async()=>{const res=Object.assign({},jj.results||{},{new_model:$('#snapmodel').value.trim(),new_serial:$('#snapserial').value.trim(),install_date:today()});const {error}=await api.rpc('fb_save_results',{tok:TOK(),job:jj.id,res,st:jj.status==='Scheduled'?'In progress':jj.status});if(error)return toast('Not saved: '+error.message);jj.results=res;if(jj.status==='Scheduled')jj.status='In progress';toast('Model and serial saved ✓');const r=$('#snapsave').getBoundingClientRect();burst(r.left+r.width/2,r.top)}}}
+    try{const img=await shrink(file);const rs=await send('fb_upload',{tok:TOK(),job:jj.id,img,kind:'nameplate',note:null});if(rs.error)throw rs.error;if(rs.queued){DB.uploads=[{id:'q'+Date.now(),job_id:jj.id,kind:'nameplate',status:'queued',result:{},created_at:new Date().toISOString()},...(DB.uploads||[])];saveCopy();$('#snapstat').innerHTML=uploadsHtml(jj);toast(QMSG);return}DB.uploads=[rs.data,...(DB.uploads||[])];$('#snapstat').innerHTML=uploadsHtml(jj);toast('Photo sent ✓');const r=im.getBoundingClientRect();burst(r.left+r.width/2,r.top+40)}catch(e){$('#snapstat').innerHTML=`<div class="note stop">Not sent: ${esc(e.message)}. Check signal and try again.</div>`}};
+   $('#snapsave').onclick=async()=>{const res=Object.assign({},jj.results||{},{new_model:$('#snapmodel').value.trim(),new_serial:$('#snapserial').value.trim(),install_date:today()});const rs=await send('fb_save_results',{tok:TOK(),job:jj.id,res,st:jj.status==='Scheduled'?'In progress':jj.status});if(rs.error)return toast('Not saved: '+rs.error.message);jj.results=res;if(jj.status==='Scheduled')jj.status='In progress';saveCopy();toast(rs.queued?QMSG:'Model and serial saved ✓');const r=$('#snapsave').getBoundingClientRect();burst(r.left+r.width/2,r.top)}}}
  if(m=h.match(/^sec-(.+)-[a-z]+$/)){const j=job(m[1]);if(!j)return;
   const hb=$('[data-here]');if(hb)hb.onclick=()=>{const s=store.get('fb-j-'+j.id,{});s.here=true;store.set('fb-j-'+j.id,s);const f=(j.steps||[]).findIndex((_,si)=>!stepDone(j,si));location.hash=`step-${j.id}-${Math.max(0,f)}`};
   $$('[data-pack]').forEach(b=>b.onchange=()=>{const pk=store.get('fb-pack-'+j.id,{});pk[b.dataset.pack]=b.checked;store.set('fb-pack-'+j.id,pk);b.closest('.chk').classList.toggle('on',b.checked)});
-  const rf=$('#resform');if(rf)rf.onsubmit=async e=>{e.preventDefault();const f=Object.assign({},j.results||{},Object.fromEntries(new FormData(e.target)));const status=f.status;delete f.status;const {error}=await api.rpc('fb_save_results',{tok:TOK(),job:j.id,res:f,st:status});if(error)return toast('Not saved: '+error.message);Object.assign(j,{results:f,status});toast('Results saved ✓');const r=e.target.querySelector('.btn').getBoundingClientRect();burst(r.left+r.width/2,r.top)}}
+  const rf=$('#resform');if(rf)rf.onsubmit=async e=>{e.preventDefault();const f=Object.assign({},j.results||{},Object.fromEntries(new FormData(e.target)));const status=f.status;delete f.status;const rs=await send('fb_save_results',{tok:TOK(),job:j.id,res:f,st:status});if(rs.error)return toast('Not saved: '+rs.error.message);Object.assign(j,{results:f,status});saveCopy();toast(rs.queued?QMSG:'Results saved ✓');const r=e.target.querySelector('.btn').getBoundingClientRect();burst(r.left+r.width/2,r.top)}}
  if(m=h.match(/^step-(.+)-(\d+)$/)){const j=job(m[1]),si=+m[2];if(!j)return;
   const pins=$$('.pinG');const focusMode=!!$('#fcard');
   const sync=()=>{const c=checks(j);const cur=(j.steps[si].tasks||[]).findIndex((_,t)=>!c[si+'-'+t]);(j.steps[si].tasks||[]).forEach((_,ti)=>{const on=!!c[si+'-'+ti];pins[ti]?.classList.toggle('hit',on);pins[ti]?.classList.toggle('cur',focusMode&&ti===cur);pins[ti]?.classList.toggle('dim',focusMode&&ti!==cur&&!on);document.querySelector(`[data-row="${ti}"]`)?.classList.toggle('on',on)});$('#nextbtn')?.classList.toggle('glow',stepDone(j,si))};
@@ -489,7 +603,7 @@ function wire(h){
  }
 }
 let lastIdx=0;
-async function route(){const h=location.hash.slice(1)||(store.get('fb-seen-help',false)?'today':'help');
+async function route(){NET.pending=false;const h=location.hash.slice(1)||(store.get('fb-seen-help',false)?'today':'help');
  if(h==='help')store.set('fb-seen-help',true);
  if(h==='lock'){const t=TOK();setTOK('');history.replaceState(null,'',location.pathname);try{await api.rpc('fb_logout',{tok:t})}catch(e){}start();return}
  let html,m;
@@ -503,16 +617,30 @@ async function route(){const h=location.hash.slice(1)||(store.get('fb-seen-help'
 function vLogin(msg){return `<div class="login"><div class="card"><div style="font:700 38px var(--cond);color:var(--navy)">Field Book</div><p class="muted" style="margin:4px 0 16px">Enter your code</p><div class="dots" aria-live="polite">${[0,1,2,3].map(i=>`<span data-d="${i}"></span>`).join('')}</div><div class="pad">${[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map(k=>k===''?'<span></span>':`<button type="button" data-key="${k}" aria-label="${k==='⌫'?'Delete':k}">${k}</button>`).join('')}</div><p id="lmsg" class="muted" style="min-height:22px;font-size:15px">${esc(msg||'')}</p></div></div>`}
 function wireLogin(){let code='';const dots=$$('[data-d]'),m=$('#lmsg');const show=()=>dots.forEach((d,i)=>d.classList.toggle('on',i<code.length));
  const press=async k=>{if(k==='⌫'){code=code.slice(0,-1);show();return}if(code.length>=4)return;code+=k;show();
-  if(code.length===4){m.textContent='Checking…';const {data,error}=await api.rpc('fb_login',{code});
+  if(code.length===4){m.textContent='Checking…';let data,error;try{({data,error}=await within(api.rpc('fb_login',{code}),15000))}catch(e){error=e}if(error&&isNet(error)){m.textContent='No signal. You need signal to type your code the first time.';code='';show();return}
    if(error){m.textContent=/many/i.test(error.message)?error.message:'Wrong code. Try again.';code='';show();const d=$('.dots');d.classList.add('shake');setTimeout(()=>d.classList.remove('shake'),500);return}
-   setTOK(data);$('.login .card').classList.add('ok');setTimeout(start,450)}};
+   setTOK(data);askPersist();$('.login .card').classList.add('ok');setTimeout(start,450)}};
  $$('[data-key]').forEach(b=>b.onclick=()=>press(b.dataset.key));
  document.onkeydown=e=>{if($('#lmsg')){if(/^[0-9]$/.test(e.key))press(e.key);else if(e.key==='Backspace')press('⌫')}}}
+function vNoSignal(){return `<div class="login"><div class="card"><div style="font:700 38px var(--cond);color:var(--navy)">Field Book</div><p style="margin:8px 0 16px">No signal right now. Field Book needs signal <b>one time</b> to save your jobs on this phone. After that it works with no signal.</p><button class="btn" id="retry">Try again</button></div></div>`}
 async function start(){
- if(!TOK()){$('#app').innerHTML=vLogin();wireLogin();return}
- try{await load()}catch(e){setTOK('');$('#app').innerHTML=vLogin(/Signed out/.test(e.message)?'Please enter your code again.':'Could not load: '+e.message);wireLogin();return}
- route()}
+ if(!TOK()){$('#app').innerHTML=vLogin(navigator.onLine?'':'No signal. You need signal to type your code the first time.');wireLogin();return}
+ IDB.keys('photos').then(k=>{NET.saved=new Set(k);updNet()});countOut();
+ const c=await IDB.get('kv','data');
+ if(c&&c.data){setDB(c.data);NET.at=c.at;NET.from=navigator.onLine?'start':'saved';route();refresh();return}
+ try{await load()}catch(e){
+  if(isAuth(e)){setTOK('');$('#app').innerHTML=vLogin('Please enter your code again.');wireLogin();return}
+  if(isNet(e)){$('#app').innerHTML=vNoSignal();$('#retry').onclick=start;return}
+  setTOK('');$('#app').innerHTML=vLogin('Could not load: '+e.message);wireLogin();return}
+ route();prefetch()}
 window.addEventListener('hashchange',route);
+/* update by itself: when the app opens, comes back to the screen, or signal comes back */
+window.addEventListener('online',()=>{updNet();NET.last=0;refresh()});
+window.addEventListener('offline',()=>{NET.from='saved';updNet()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh()});
+window.addEventListener('pageshow',e=>{if(e.persisted)refresh()});
+setInterval(()=>{if(document.visibilityState==='visible')refresh()},10*60*1000);
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 start();
 }
 </script>
